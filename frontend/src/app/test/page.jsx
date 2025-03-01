@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { logout } from "@/utils/auth";
 import PlaybackApp from "@/components/playback-app"
-
 export default function TestPage() {
   const [user, setUser] = useState(null);
   const router = useRouter();

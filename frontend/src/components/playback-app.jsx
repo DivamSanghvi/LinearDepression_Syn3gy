@@ -32,6 +32,8 @@ import {
   Spotlight,
   TracingBeam
 } from "@/components/ui/acaternity"
+import ReactMarkdown from "react-markdown";
+import remarkGfm from 'remark-gfm' 
 
 export default function PlaybackApp() {
   const [activeTab, setActiveTab] = useState("transcript");
@@ -769,28 +771,38 @@ Unlike traditional programming, where explicit instructions are provided, machin
                         </Button>
                       </div>
                       <ScrollArea className="h-[440px] p-4">
-                        <div className="prose dark:prose-invert max-w-none">
-                          {transcript.split('\n').map((line, index) => {
-                            if (line.startsWith('# ')) {
-                              return <h1 key={index} className="text-2xl font-bold text-purple-800 dark:text-purple-300">{line.replace('# ', '')}</h1>
-                            } else if (line.startsWith('## ')) {
-                              return <h2 key={index} className="text-xl font-semibold text-purple-700 dark:text-purple-400">{line.replace('## ', '')}</h2>
-                            } else if (line.startsWith('### ')) {
-                              return <h3 key={index} className="text-lg font-medium text-purple-600 dark:text-purple-500">{line.replace('### ', '')}</h3>
-                            } else if (line.startsWith('- ')) {
-                              return <li key={index} className="ml-4">{line.replace('- ', '')}</li>
-                            } else if (line.match(/^\d+\. /)) {
-                              return <li key={index} className="ml-4">{line.replace(/^\d+\. /, '')}</li>
-                            } else if (line.startsWith('**') && line.endsWith('**')) {
-                              return <strong key={index} className="font-bold">{line.replace(/^\*\*|\*\*$/g, '')}</strong>
-                            } else if (line.trim() === '') {
-                              return <br key={index} />
-                            } else {
-                              return <p key={index}>{line}</p>
-                            }
-                          })}
-                        </div>
-                      </ScrollArea>
+  <div className="prose dark:prose-invert max-w-none">
+    {transcript.split('\n').map((line, index) => {
+      if (line.startsWith('# ')) {
+        return <h1 key={index} className="text-2xl font-bold text-purple-800 dark:text-purple-300">{line.replace('# ', '')}</h1>;
+      } else if (line.startsWith('## ')) {
+        return <h2 key={index} className="text-xl font-semibold text-purple-700 dark:text-purple-400">{line.replace('## ', '')}</h2>;
+      } else if (line.startsWith('### ')) {
+        return <h3 key={index} className="text-lg font-medium text-purple-600 dark:text-purple-500">{line.replace('### ', '')}</h3>;
+      } else if (line.startsWith('- ')) {
+        return (
+          <ul key={index} className="list-disc list-inside">
+            <li dangerouslySetInnerHTML={{ __html: line.replace('- ', '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+          </ul>
+        );
+      } else if (line.match(/^\d+\. /)) {
+        return (
+          <ol key={index} className="list-decimal list-inside">
+            <li dangerouslySetInnerHTML={{ __html: line.replace(/^\d+\. /, '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+          </ol>
+        );
+      } else if (line.startsWith('**') && line.endsWith('**')) {
+        return <p key={index} className="font-bold">{line.replace(/\*\*/g, '')}</p>;
+      } else if (line.trim() === '') {
+        return <br key={index} />;
+      } else {
+        return <p key={index} dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />;
+      }
+    })}
+  </div>
+</ScrollArea>
+
+
                     </TabsContent>
                     
                     <TabsContent value="qa" className="m-0 h-full flex flex-col">

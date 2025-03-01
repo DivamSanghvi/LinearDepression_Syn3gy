@@ -1,15 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Slider } from "@/components/ui/slider"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import ReactMarkdown from 'react-markdown';
+import { useState, useRef, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from 'remark-gfm' 
+
 import {
   Play,
   Pause,
@@ -25,25 +27,25 @@ import {
   List,
   ChevronRight,
   RotateCcw,
-} from "lucide-react"
+} from "lucide-react";
 
 export default function VideoLearningApp() {
-  const [activeTab, setActiveTab] = useState("transcript")
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [volume, setVolume] = useState(0.7)
-  const [isMuted, setIsMuted] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [playbackRate, setPlaybackRate] = useState(1)
-  const [videoSrc, setVideoSrc] = useState("")
-  const [isDragging, setIsDragging] = useState(false)
-  const [chatMessages, setChatMessages] = useState([])
-  const [messageInput, setMessageInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [activeSection, setActiveSection] = useState(null)
+  const [activeTab, setActiveTab] = useState("transcript");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.7);
+  const [isMuted, setIsMuted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [videoSrc, setVideoSrc] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [messageInput, setMessageInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState(null);
 
-  const videoRef = useRef(null)
-  const fileInputRef = useRef(null)
+  const videoRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const transcript = `
 # Introduction to Machine Learning
@@ -99,7 +101,7 @@ Learning through trial and error with rewards/penalties.
 As computing power increases and algorithms become more sophisticated, we can expect machine learning to continue transforming various industries including healthcare, finance, transportation, and entertainment.
 
 > "Machine learning is the science of getting computers to learn without being explicitly programmed." - Arthur Samuel
-`
+`;
 
   const topics = [
     { title: "Introduction to Machine Learning", timestamp: 45 },
@@ -109,132 +111,137 @@ As computing power increases and algorithms become more sophisticated, we can ex
     { title: "Evaluation Metrics", timestamp: 590 },
     { title: "Real-world Applications", timestamp: 720 },
     { title: "Future Trends in AI", timestamp: 850 },
-  ]
+  ];
 
   const handleFileChange = (event) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file)
-      setVideoSrc(url)
+      const url = URL.createObjectURL(file);
+      setVideoSrc(url);
     }
-  }
+  };
 
   const handleDragOver = (e) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
   const handleDragLeave = () => {
-    setIsDragging(false)
-  }
+    setIsDragging(false);
+  };
 
   const handleDrop = (e) => {
-    e.preventDefault()
-    setIsDragging(false)
+    e.preventDefault();
+    setIsDragging(false);
 
-    const file = e.dataTransfer.files?.[0]
+    const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("video/")) {
-      const url = URL.createObjectURL(file)
-      setVideoSrc(url)
+      const url = URL.createObjectURL(file);
+      setVideoSrc(url);
     }
-  }
+  };
 
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
-        videoRef.current.pause()
+        videoRef.current.pause();
       } else {
-        videoRef.current.play()
+        videoRef.current.play();
       }
-      setIsPlaying(!isPlaying)
+      setIsPlaying(!isPlaying);
     }
-  }
+  };
 
   const toggleMute = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted
-      setIsMuted(!isMuted)
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
     }
-  }
+  };
 
   const handleVolumeChange = (value) => {
-    const newVolume = value[0]
-    setVolume(newVolume)
+    const newVolume = value[0];
+    setVolume(newVolume);
     if (videoRef.current) {
-      videoRef.current.volume = newVolume
+      videoRef.current.volume = newVolume;
     }
-  }
+  };
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime)
+      setCurrentTime(videoRef.current.currentTime);
     }
-  }
+  };
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration)
+      setDuration(videoRef.current.duration);
     }
-  }
+  };
 
   const handleSeek = (value) => {
-    const seekTime = value[0]
+    const seekTime = value[0];
     if (videoRef.current) {
-      videoRef.current.currentTime = seekTime
-      setCurrentTime(seekTime)
+      videoRef.current.currentTime = seekTime;
+      setCurrentTime(seekTime);
     }
-  }
+  };
 
   const handleFullscreen = () => {
     if (videoRef.current) {
       if (document.fullscreenElement) {
-        document.exitFullscreen()
+        document.exitFullscreen();
       } else {
-        videoRef.current.requestFullscreen()
+        videoRef.current.requestFullscreen();
       }
     }
-  }
+  };
 
   const setPlaybackSpeed = (speed) => {
     if (videoRef.current) {
-      videoRef.current.playbackRate = speed
-      setPlaybackRate(speed)
+      videoRef.current.playbackRate = speed;
+      setPlaybackRate(speed);
     }
-  }
+  };
 
   const jumpToTimestamp = (seconds) => {
     if (videoRef.current) {
-      videoRef.current.currentTime = seconds
-      setCurrentTime(seconds)
+      videoRef.current.currentTime = seconds;
+      setCurrentTime(seconds);
       if (!isPlaying) {
-        videoRef.current.play()
-        setIsPlaying(true)
+        videoRef.current.play();
+        setIsPlaying(true);
       }
     }
-  }
+  };
 
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const downloadTranscript = () => {
-    const element = document.createElement("a")
-    const file = new Blob([transcript], { type: "text/plain" })
-    element.href = URL.createObjectURL(file)
-    element.download = "transcript.md"
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
-  }
+    const element = document.createElement("a");
+    const file = new Blob([transcript], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = "transcript.md";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
 
   const sendMessage = () => {
-    if (messageInput.trim() === "") return
+    if (messageInput.trim() === "") return;
 
     // Add user message
-    setChatMessages([...chatMessages, { sender: "user", message: messageInput }])
-    setIsLoading(true)
+    setChatMessages([
+      ...chatMessages,
+      { sender: "user", message: messageInput },
+    ]);
+    setIsLoading(true);
 
     // Simulate AI response after a delay
     setTimeout(() => {
@@ -244,44 +251,61 @@ As computing power increases and algorithms become more sophisticated, we can ex
         "Feature extraction is the process of selecting the most relevant attributes from your dataset.",
         "The evaluation metrics discussed in the video include accuracy, precision, recall, and F1 score.",
         "The video mentions that deep learning is a subset of machine learning that uses neural networks with multiple layers.",
-      ]
+      ];
 
-      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)]
+      const randomResponse =
+        aiResponses[Math.floor(Math.random() * aiResponses.length)];
       setChatMessages([
         ...chatMessages,
         { sender: "user", message: messageInput },
         { sender: "ai", message: randomResponse },
-      ])
-      setMessageInput("")
-      setIsLoading(false)
-    }, 1500)
-  }
+      ]);
+      setMessageInput("");
+      setIsLoading(false);
+    }, 1500);
+  };
 
   const handleMarkdownClick = (event) => {
-    const target = event.target
-    if (target.tagName === 'H1' || target.tagName === 'H2' || target.tagName === 'H3') {
-      setActiveSection(target.textContent)
+    const target = event.target;
+    if (
+      target.tagName === "H1" ||
+      target.tagName === "H2" ||
+      target.tagName === "H3"
+    ) {
+      setActiveSection(target.textContent);
       // Scroll the target into view with a smooth effect
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }
+  };
 
   const extractHeadings = (markdown) => {
-    const headings = []
-    const lines = markdown.split('\n')
-    
-    lines.forEach(line => {
-      if (line.startsWith('# ')) {
-        headings.push({ level: 1, text: line.substring(2), id: line.substring(2).toLowerCase().replace(/\s+/g, '-') })
-      } else if (line.startsWith('## ')) {
-        headings.push({ level: 2, text: line.substring(3), id: line.substring(3).toLowerCase().replace(/\s+/g, '-') })
-      } else if (line.startsWith('### ')) {
-        headings.push({ level: 3, text: line.substring(4), id: line.substring(4).toLowerCase().replace(/\s+/g, '-') })
+    const headings = [];
+    const lines = markdown.split("\n");
+
+    lines.forEach((line) => {
+      if (line.startsWith("# ")) {
+        headings.push({
+          level: 1,
+          text: line.substring(2),
+          id: line.substring(2).toLowerCase().replace(/\s+/g, "-"),
+        });
+      } else if (line.startsWith("## ")) {
+        headings.push({
+          level: 2,
+          text: line.substring(3),
+          id: line.substring(3).toLowerCase().replace(/\s+/g, "-"),
+        });
+      } else if (line.startsWith("### ")) {
+        headings.push({
+          level: 3,
+          text: line.substring(4),
+          id: line.substring(4).toLowerCase().replace(/\s+/g, "-"),
+        });
       }
-    })
-    
-    return headings
-  }
+    });
+
+    return headings;
+  };
 
   return (
     <div className="container mx-auto p-4 max-w-7xl">
@@ -292,19 +316,34 @@ As computing power increases and algorithms become more sophisticated, we can ex
             {!videoSrc ? (
               <div
                 className={`h-64 md:h-80 flex flex-col items-center justify-center border-2 border-dashed rounded-lg transition-colors ${
-                  isDragging ? "border-primary bg-primary/5" : "border-gray-300 dark:border-gray-700"
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-gray-300 dark:border-gray-700"
                 }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
                 <Upload className="w-12 h-12 text-gray-400 mb-4" />
-                <p className="text-gray-500 dark:text-gray-400 mb-2">Drag and drop your video here</p>
-                <p className="text-gray-400 dark:text-gray-500 text-sm mb-4">or</p>
-                <Button onClick={() => fileInputRef.current?.click()} className="bg-primary hover:bg-primary/90">
+                <p className="text-gray-500 dark:text-gray-400 mb-2">
+                  Drag and drop your video here
+                </p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mb-4">
+                  or
+                </p>
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="bg-primary hover:bg-primary/90"
+                >
                   Browse Files
                 </Button>
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*" className="hidden" />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="video/*"
+                  className="hidden"
+                />
               </div>
             ) : (
               <div className="relative">
@@ -337,7 +376,11 @@ As computing power increases and algorithms become more sophisticated, we can ex
                           onClick={togglePlay}
                           className="text-white hover:bg-white/20"
                         >
-                          {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                          {isPlaying ? (
+                            <Pause className="h-5 w-5" />
+                          ) : (
+                            <Play className="h-5 w-5" />
+                          )}
                         </Button>
 
                         <div className="flex items-center gap-2">
@@ -347,7 +390,11 @@ As computing power increases and algorithms become more sophisticated, we can ex
                             onClick={toggleMute}
                             className="text-white hover:bg-white/20"
                           >
-                            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                            {isMuted ? (
+                              <VolumeX className="h-5 w-5" />
+                            ) : (
+                              <Volume2 className="h-5 w-5" />
+                            )}
                           </Button>
                           <Slider
                             value={[volume]}
@@ -401,16 +448,22 @@ As computing power increases and algorithms become more sophisticated, we can ex
           <div className="mt-6 bg-white dark:bg-slate-800 rounded-xl shadow-md p-4">
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-medium">Course Progress</h3>
-              <span className="text-sm text-gray-500 dark:text-gray-400">42% Complete</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                42% Complete
+              </span>
             </div>
             <Progress value={42} className="h-2" />
 
             <div className="mt-4">
               <h4 className="text-sm font-medium mb-2">Course Details</h4>
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-blue-500 hover:bg-blue-600">Machine Learning</Badge>
+                <Badge className="bg-blue-500 hover:bg-blue-600">
+                  Machine Learning
+                </Badge>
                 <Badge className="bg-purple-500 hover:bg-purple-600">AI</Badge>
-                <Badge className="bg-green-500 hover:bg-green-600">Data Science</Badge>
+                <Badge className="bg-green-500 hover:bg-green-600">
+                  Data Science
+                </Badge>
               </div>
             </div>
           </div>
@@ -419,7 +472,11 @@ As computing power increases and algorithms become more sophisticated, we can ex
         {/* Right Section - Tabs (60%) */}
         <div className="lg:w-3/5 w-full">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
-            <Tabs defaultValue="transcript" value={activeTab} onValueChange={setActiveTab}>
+            <Tabs
+              defaultValue="transcript"
+              value={activeTab}
+              onValueChange={setActiveTab}
+            >
               <div className="border-b dark:border-gray-700">
                 <TabsList className="w-full justify-start rounded-none bg-transparent border-b dark:border-gray-700">
                   <TabsTrigger
@@ -452,24 +509,37 @@ As computing power increases and algorithms become more sophisticated, we can ex
                     <h2 className="font-semibold">Lecture Transcript</h2>
                     <div className="flex gap-2">
                       <div className="relative group">
-                        <Button variant="outline" size="sm" className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
                           <List className="w-4 h-4" />
                           Contents
                         </Button>
                         <div className="absolute right-0 z-10 w-64 bg-white dark:bg-gray-800 shadow-md rounded-md p-3 hidden group-hover:block border dark:border-gray-700">
-                          <div className="font-medium mb-2 text-sm">Table of Contents</div>
+                          <div className="font-medium mb-2 text-sm">
+                            Table of Contents
+                          </div>
                           <div className="space-y-1">
                             {extractHeadings(transcript).map((heading, idx) => (
-                              <div 
-                                key={idx} 
+                              <div
+                                key={idx}
                                 className={`text-sm cursor-pointer hover:text-primary ${
-                                  heading.level === 1 ? 'font-medium' : 
-                                  heading.level === 2 ? 'pl-3 text-gray-600 dark:text-gray-300' : 
-                                  'pl-6 text-gray-500 dark:text-gray-400'
+                                  heading.level === 1
+                                    ? "font-medium"
+                                    : heading.level === 2
+                                    ? "pl-3 text-gray-600 dark:text-gray-300"
+                                    : "pl-6 text-gray-500 dark:text-gray-400"
                                 }`}
                                 onClick={() => {
-                                  const element = document.getElementById(heading.id);
-                                  if (element) element.scrollIntoView({ behavior: 'smooth' });
+                                  const element = document.getElementById(
+                                    heading.id
+                                  );
+                                  if (element)
+                                    element.scrollIntoView({
+                                      behavior: "smooth",
+                                    });
                                   setActiveSection(heading.text);
                                 }}
                               >
@@ -479,41 +549,69 @@ As computing power increases and algorithms become more sophisticated, we can ex
                           </div>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" onClick={downloadTranscript} className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={downloadTranscript}
+                        className="flex items-center gap-1"
+                      >
                         <Download className="w-4 h-4" />
                         Download PDF
                       </Button>
                     </div>
                   </div>
                   <ScrollArea className="h-[440px] px-6 py-4">
-                    <div 
-                      className="prose dark:prose-invert prose-headings:text-primary prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:my-3 prose-a:text-blue-600 prose-code:bg-gray-100 prose-code:p-1 prose-code:rounded dark:prose-code:bg-gray-800 prose-strong:text-primary prose-li:my-1 max-w-none"
-                      onClick={handleMarkdownClick}
-                    >
-                      <ReactMarkdown
-                        components={{
-                          h1: ({node, ...props}) => <h1 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />,
-                          h2: ({node, ...props}) => <h2 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />,
-                          h3: ({node, ...props}) => <h3 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />
-                        }}
-                      >
-                        {transcript}
-                      </ReactMarkdown>
-                    </div>
-                  </ScrollArea>
+    <div 
+      className="prose dark:prose-invert prose-headings:text-primary prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:my-3 prose-a:text-blue-600 prose-code:bg-gray-100 prose-code:p-1 prose-code:rounded dark:prose-code:bg-gray-800 prose-strong:text-primary prose-li:my-1 max-w-none"
+      onClick={handleMarkdownClick}
+    >
+      <ReactMarkdown
+  remarkPlugins={[remarkGfm]}  // Add this line
+  components={{
+    h1: ({node, ...props}) => <h1 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />,
+    h2: ({node, ...props}) => <h2 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />,
+    h3: ({node, ...props}) => <h3 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />,
+    // Add these new component mappings
+    strong: ({node, ...props}) => <strong className="font-bold text-primary" {...props} />,
+    em: ({node, ...props}) => <em className="italic" {...props} />,
+    ul: ({node, ...props}) => <ul className="list-disc ml-6 my-4" {...props} />,
+    ol: ({node, ...props}) => <ol className="list-decimal ml-6 my-4" {...props} />,
+    li: ({node, ...props}) => <li className="my-1" {...props} />,
+    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4" {...props} />,
+    code: ({node, inline, ...props}) => 
+      inline ? 
+        <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded" {...props} /> : 
+        <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded overflow-x-auto"><code {...props} /></pre>
+  }}
+>
+  {transcript}
+</ReactMarkdown>
+    </div>
+  </ScrollArea>
                 </TabsContent>
 
                 <TabsContent value="qa" className="m-0 h-full flex flex-col">
                   <div className="p-4 border-b dark:border-gray-700">
-                    <h2 className="font-semibold">Ask Questions About the Lecture</h2>
+                    <h2 className="font-semibold">
+                      Ask Questions About the Lecture
+                    </h2>
                   </div>
                   <ScrollArea className="flex-1 p-4">
                     <div className="space-y-4">
                       {chatMessages.map((msg, index) => (
-                        <div key={index} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                        <div
+                          key={index}
+                          className={`flex ${
+                            msg.sender === "user"
+                              ? "justify-end"
+                              : "justify-start"
+                          }`}
+                        >
                           <div
                             className={`max-w-[80%] rounded-lg p-3 ${
-                              msg.sender === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+                              msg.sender === "user"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted"
                             }`}
                           >
                             {msg.message}
@@ -540,8 +638,8 @@ As computing power increases and algorithms become more sophisticated, we can ex
                         onChange={(e) => setMessageInput(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault()
-                            sendMessage()
+                            e.preventDefault();
+                            sendMessage();
                           }
                         }}
                       />
@@ -569,7 +667,9 @@ As computing power increases and algorithms become more sophisticated, we can ex
                             <span>{topic.title}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline">{formatTime(topic.timestamp)}</Badge>
+                            <Badge variant="outline">
+                              {formatTime(topic.timestamp)}
+                            </Badge>
                             <ChevronRight className="h-4 w-4 text-gray-400" />
                           </div>
                         </div>
@@ -620,9 +720,10 @@ As computing power increases and algorithms become more sophisticated, we can ex
 
       {/* Fixed Quiz Button */}
       <div className="fixed bottom-6 right-6">
-        <Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg rounded-full px-6">Take Quiz</Button>
+        <Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg rounded-full px-6">
+          Take Quiz
+        </Button>
       </div>
     </div>
-  )
+  );
 }
-
