@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { login } from "@/utils/auth";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useSelector } from "react-redux";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ export default function Login() {
   const router = useRouter();
 
 
+  console.log(videoSrc, isPlaying, volume, isMuted, currentTime);
   const handleLogin = async () => {
     const user = await login(email, password);
     if (user) {

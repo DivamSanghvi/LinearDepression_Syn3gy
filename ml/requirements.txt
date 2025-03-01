@@ -4,7 +4,6 @@ langchain
 langchain-community
 langchainhub
 langchain-groq
-langchain-chroma
 langgraph
 youtube_search
 youtube_transcript_api
