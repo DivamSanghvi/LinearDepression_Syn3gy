@@ -14,7 +14,7 @@ const authentication=(req,res,next)=>{
 try{
     const payload=jwt.verify(token, 'thisismyrandomsecret');
     // ATTACHING USER TO THE REQUEST OBJ
-    req.user={userId: payload.userId, name: payload.name, role: payload.role};
+    req.user={userId: payload.userId, name: payload.name};
     next();
 }catch(error){
     throw new UnauthenticatedError("token is invalid")

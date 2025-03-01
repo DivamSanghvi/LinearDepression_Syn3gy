@@ -19,11 +19,6 @@ password:{
     type: String,
     required: [true, "Please Enter a password"],
     minLength: 6,
-},
-role: {
-    type: String,
-    required: [true, "Please Enter Your role"],
-    enum: ["therapist" ,"user"],
 }
 })
 
@@ -34,7 +29,7 @@ UserSchema.pre('save', async function(){
 
 UserSchema.methods.createJWT = function () {
     return jwt.sign(
-      { userId: this._id, name: this.name, role: this.role },
+      { userId: this._id, name: this.name },
       'thisismyrandomsecret',
       { expiresIn: process.env.JWT_LIFETIME }
     );
