@@ -3,13 +3,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
+import { Loader2 } from "lucide-react";
 
 export default function TakeQuizPage() {
   const router = useRouter();
   const params = useParams();
 
   const decodedQuizId = decodeURIComponent(params.quizId);
-
+  const [loading, setLoading] = useState(true);
   // State Management
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -52,6 +53,7 @@ export default function TakeQuizPage() {
         }));
 
         setQuestions(fetchedQuestions);
+        setLoading(false);
       } catch (error) {
         console.error("Failed to fetch quiz", error);
       }
@@ -186,6 +188,14 @@ export default function TakeQuizPage() {
     const encodedQuizData = encodeURIComponent(JSON.stringify(quizReport));
     router.push(`/test/quiz/report?quizData=${encodedQuizData}`);
   };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin" />;
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">

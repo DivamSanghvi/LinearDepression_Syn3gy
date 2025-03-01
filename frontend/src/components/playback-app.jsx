@@ -67,6 +67,7 @@ import {
 } from "@/components/ui/acaternity";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import QuizModal from "./quiz-modal";
 
 export default function PlaybackApp() {
   const [activeTab, setActiveTab] = useState("transcript");
@@ -530,10 +531,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                   <Share className="h-4 w-4" />
                   Share
                 </Button>
-                <Button className="bg-purple-600 hover:bg-purple-700 gap-1">
-                  <Award className="h-4 w-4" />
-                  Take Quiz
-                </Button>
+                <QuizModal />
               </div>
             </div>
           </div>
