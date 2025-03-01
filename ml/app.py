@@ -10,7 +10,7 @@ import tempfile
 warnings.filterwarnings("ignore")
 
 load_dotenv()
-
+viva_chat_history = []  # Global variable to store chat history for viva_tool_final.py
 app = Flask(__name__)
 CORS(app)
 
