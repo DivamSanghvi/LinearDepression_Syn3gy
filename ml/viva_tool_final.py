@@ -57,7 +57,7 @@ def generate_viva_questions_and_answer(topics,chat_history):
 # def convert_chat_history_to_json(chat_history): #Uncomment only if you are returning chat_history in viva_qna
 #     return [{"type": type(msg).__name__, "content": msg.content} for msg in chat_history]
 
-def generate_feedback(response_q_content, response_a_content, user_answer, chat_history, sentiment_scores):
+def generate_feedback(response_q_content, response_a_content, user_answer, chat_history):
     prompt_feedback = ChatPromptTemplate.from_messages([
         ("system", """
         Provide feedback on the answer given by the user ie {user_answer}.
@@ -79,7 +79,7 @@ def generate_feedback(response_q_content, response_a_content, user_answer, chat_
     chain_f = prompt_feedback | llm
 
     # Generate the feedback automatically
-    response_f = chain_f.invoke({"response_q_content": response_q_content, "response_a_content": response_a_content, "user_answer": user_answer, "sentiment_scores": sentiment_scores, "chat_history": chat_history})
+    response_f = chain_f.invoke({"response_q_content": response_q_content, "response_a_content": response_a_content, "user_answer": user_answer, "chat_history": chat_history})
     response_f_content = response_f.content
     
     return response_f_content.strip()
