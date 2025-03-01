@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,6 +40,7 @@ export default function VideoLearningApp() {
   const [chatMessages, setChatMessages] = useState([])
   const [messageInput, setMessageInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [activeSection, setActiveSection] = useState(null)
 
   const videoRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -47,25 +48,58 @@ export default function VideoLearningApp() {
   const transcript = `
 # Introduction to Machine Learning
 
-## Basic Concepts
+## What is Machine Learning?
 
-Machine learning is a subset of artificial intelligence that focuses on developing systems that learn from data. 
-Unlike traditional programming, where explicit instructions are provided, machine learning algorithms build models based on sample data to make predictions or decisions.
+Machine learning is a subset of artificial intelligence that focuses on developing systems that learn from data. Unlike traditional programming with explicit instructions, machine learning algorithms **build models** based on sample data to make predictions or decisions.
 
-### Key Components:
+### Key Components of ML Systems:
 
-1. **Data Collection**: Gathering relevant information
+1. **Data Collection**: Gathering relevant information from diverse sources
+   - Structured data: databases, spreadsheets
+   - Unstructured data: text, images, audio
+   
 2. **Feature Extraction**: Identifying important attributes
-3. **Model Training**: Teaching the algorithm patterns
+   - Numerical features
+   - Categorical features
+   - Text/image features
+
+3. **Model Training**: Teaching the algorithm to recognize patterns
+   - Iterative optimization
+   - Parameter tuning
+   - Regularization techniques
+   
 4. **Evaluation**: Testing the model's performance
+   - Cross-validation
+   - Metrics: accuracy, precision, recall, F1
+   
 5. **Deployment**: Implementing the model in real-world scenarios
+   - API development
+   - Continuous monitoring
+   - Performance updates
 
 ## Types of Machine Learning
 
-- **Supervised Learning**: Training with labeled data
-- **Unsupervised Learning**: Finding patterns in unlabeled data
-- **Reinforcement Learning**: Learning through trial and error
-  `
+### Supervised Learning
+Training with labeled data where the algorithm learns to map inputs to known outputs.
+- **Examples**: Classification, regression
+- **Use cases**: Spam detection, price prediction
+
+### Unsupervised Learning
+Finding patterns in unlabeled data without predetermined outputs.
+- **Examples**: Clustering, dimensionality reduction
+- **Use cases**: Customer segmentation, anomaly detection
+
+### Reinforcement Learning
+Learning through trial and error with rewards/penalties.
+- **Examples**: Q-learning, policy gradients
+- **Use cases**: Game AI, robotics, autonomous systems
+
+## The Future of Machine Learning
+
+As computing power increases and algorithms become more sophisticated, we can expect machine learning to continue transforming various industries including healthcare, finance, transportation, and entertainment.
+
+> "Machine learning is the science of getting computers to learn without being explicitly programmed." - Arthur Samuel
+`
 
   const topics = [
     { title: "Introduction to Machine Learning", timestamp: 45 },
@@ -221,6 +255,32 @@ Unlike traditional programming, where explicit instructions are provided, machin
       setMessageInput("")
       setIsLoading(false)
     }, 1500)
+  }
+
+  const handleMarkdownClick = (event) => {
+    const target = event.target
+    if (target.tagName === 'H1' || target.tagName === 'H2' || target.tagName === 'H3') {
+      setActiveSection(target.textContent)
+      // Scroll the target into view with a smooth effect
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  const extractHeadings = (markdown) => {
+    const headings = []
+    const lines = markdown.split('\n')
+    
+    lines.forEach(line => {
+      if (line.startsWith('# ')) {
+        headings.push({ level: 1, text: line.substring(2), id: line.substring(2).toLowerCase().replace(/\s+/g, '-') })
+      } else if (line.startsWith('## ')) {
+        headings.push({ level: 2, text: line.substring(3), id: line.substring(3).toLowerCase().replace(/\s+/g, '-') })
+      } else if (line.startsWith('### ')) {
+        headings.push({ level: 3, text: line.substring(4), id: line.substring(4).toLowerCase().replace(/\s+/g, '-') })
+      }
+    })
+    
+    return headings
   }
 
   return (
@@ -390,19 +450,55 @@ Unlike traditional programming, where explicit instructions are provided, machin
                 <TabsContent value="transcript" className="m-0 h-full">
                   <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
                     <h2 className="font-semibold">Lecture Transcript</h2>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={downloadTranscript}
-                      className="flex items-center gap-1"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download PDF
-                    </Button>
+                    <div className="flex gap-2">
+                      <div className="relative group">
+                        <Button variant="outline" size="sm" className="flex items-center gap-1">
+                          <List className="w-4 h-4" />
+                          Contents
+                        </Button>
+                        <div className="absolute right-0 z-10 w-64 bg-white dark:bg-gray-800 shadow-md rounded-md p-3 hidden group-hover:block border dark:border-gray-700">
+                          <div className="font-medium mb-2 text-sm">Table of Contents</div>
+                          <div className="space-y-1">
+                            {extractHeadings(transcript).map((heading, idx) => (
+                              <div 
+                                key={idx} 
+                                className={`text-sm cursor-pointer hover:text-primary ${
+                                  heading.level === 1 ? 'font-medium' : 
+                                  heading.level === 2 ? 'pl-3 text-gray-600 dark:text-gray-300' : 
+                                  'pl-6 text-gray-500 dark:text-gray-400'
+                                }`}
+                                onClick={() => {
+                                  const element = document.getElementById(heading.id);
+                                  if (element) element.scrollIntoView({ behavior: 'smooth' });
+                                  setActiveSection(heading.text);
+                                }}
+                              >
+                                {heading.text}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={downloadTranscript} className="flex items-center gap-1">
+                        <Download className="w-4 h-4" />
+                        Download PDF
+                      </Button>
+                    </div>
                   </div>
-                  <ScrollArea className="h-[440px] p-4">
-                    <div className="prose dark:prose-invert max-w-none">
-                      <ReactMarkdown>{transcript}</ReactMarkdown>
+                  <ScrollArea className="h-[440px] px-6 py-4">
+                    <div 
+                      className="prose dark:prose-invert prose-headings:text-primary prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:my-3 prose-a:text-blue-600 prose-code:bg-gray-100 prose-code:p-1 prose-code:rounded dark:prose-code:bg-gray-800 prose-strong:text-primary prose-li:my-1 max-w-none"
+                      onClick={handleMarkdownClick}
+                    >
+                      <ReactMarkdown
+                        components={{
+                          h1: ({node, ...props}) => <h1 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />,
+                          h2: ({node, ...props}) => <h2 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />,
+                          h3: ({node, ...props}) => <h3 className={`cursor-pointer hover:text-blue-600 ${activeSection === props.children ? 'text-blue-600' : ''}`} {...props} />
+                        }}
+                      >
+                        {transcript}
+                      </ReactMarkdown>
                     </div>
                   </ScrollArea>
                 </TabsContent>
