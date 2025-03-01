@@ -1,35 +1,9 @@
-"use client"
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { logout } from "@/utils/auth";
+import VideoLearningApp from "@/components/video-learning-app"
 
-export default function TestPage() {
-  const [user, setUser] = useState(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
-    } else {
-      // Decode JWT or fetch user details from backend
-      const decodedUser = JSON.parse(atob(token.split(".")[1])); // Decoding JWT
-      setUser(decodedUser);
-    }
-  }, []);
-
-  const handleLogout = () => {
-    logout();
-    router.push("/");
-  };
-
+export default function Home() {
   return (
-    <div className="h-screen flex flex-col items-center justify-center">
-      <h1 className="text-2xl font-bold">Protected Page</h1>
-      {user && <p>Welcome, {user.name} (ID: {user.userId} )</p>}
-      <button className="px-4 py-2 bg-red-500 text-white rounded mt-4" onClick={handleLogout}>
-        Logout
-      </button>
-    </div>
-  );
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <VideoLearningApp />
+    </main>
+  )
 }
