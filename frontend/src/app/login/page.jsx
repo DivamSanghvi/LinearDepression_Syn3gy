@@ -11,7 +11,9 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
-
+  const { videoSrc, isPlaying, volume, isMuted, currentTime } = useSelector(
+    (state) => state.video
+  );
 
   console.log(videoSrc, isPlaying, volume, isMuted, currentTime);
   const handleLogin = async () => {
