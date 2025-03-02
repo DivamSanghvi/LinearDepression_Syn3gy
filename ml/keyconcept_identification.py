@@ -3,9 +3,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 load_dotenv()
 import os
-from moviepy import VideoFileClip, TextClip, CompositeVideoClip
-import speech_recognition as sr
-import whisper
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 
