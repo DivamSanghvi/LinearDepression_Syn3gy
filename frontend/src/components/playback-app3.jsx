@@ -9,14 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { StickyNotes } from "./ui/stickynotes";
-import { FlashCard } from "./ui/flashcard";
 import { StatsWidget } from "./ui/statswidget";
 import { StudyGroup } from "./ui/studygroup";
+import { FlashCard } from "./ui/flashcard";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { SearchPage } from "@/app/test3/page";
 import {
   Play,
   Pause,
@@ -57,6 +55,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import QuizModal from "./quiz-modal";
+import { SearchPage } from "@/app/test3/page";
 
 export default function PlaybackApp() {
   const [activeTab, setActiveTab] = useState("transcript");
@@ -431,20 +430,22 @@ Unlike traditional programming, where explicit instructions are provided, machin
   };
 
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const downloadTranscript = () => {
-    const element = document.createElement("a")
-    const file = new Blob([transcript], { type: "text/plain" })
-    element.href = URL.createObjectURL(file)
-    element.download = "transcript.md"
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
-  }
+    const element = document.createElement("a");
+    const file = new Blob([transcript], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = "transcript.md";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
 
   const sendMessage = () => {
     if (messageInput.trim() === "") return;
@@ -1118,17 +1119,49 @@ Unlike traditional programming, where explicit instructions are provided, machin
                 </div>
               </div>
 
-              
-
               {/* Sticky Notes */}
-             {/* Sticky Notes */}
-             <StickyNotes />
+              <div className="mt-6 bg-white dark:bg-slate-900 rounded-xl shadow-md p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-medium flex items-center gap-2">
+                    <Bookmark className="h-4 w-4 text-amber-500" />
+                    Quick Notes
+                  </h3>
+                </div>
+                <div className="space-y-2 mb-4">
+                  {notes.map((note, index) => (
+                    <div
+                      key={index}
+                      className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md relative group"
+                    >
+                      <p className="text-sm">{note}</p>
+                      <button
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => deleteNote(index)}
+                      >
+                        <X className="h-4 w-4 text-gray-500 hover:text-red-500" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add a note..."
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        addNote();
+                      }
+                    }}
+                  />
+                  <Button onClick={addNote} size="sm">
+                    Add
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {/* Right Section - Tabs */}
-            <div
-              className={`${layoutClasses.contentSection} transition-all duration-300`}
-            >
             <div
               className={`${layoutClasses.contentSection} transition-all duration-300`}
             >
@@ -1138,39 +1171,34 @@ Unlike traditional programming, where explicit instructions are provided, machin
                   value={activeTab}
                   onValueChange={setActiveTab}
                 >
-                <Tabs
-                  defaultValue="transcript"
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                >
                   <div className="border-b m-4 dark:border-gray-700">
-                    <TabsList className="w-full   justify-start flex rounded-none bg-transparent border-b dark:border-gray-700">
+                    <TabsList className="w-full  justify-start flex rounded-none bg-transparent border-b dark:border-gray-700">
                       <TabsTrigger
                         value="transcript"
-                        className="data-[state=active]:border-b-2 px-8 flex my-auto  data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
+                        className="data-[state=active]:border-b-2 px-8 flex  data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
                       >
-                        <BookOpen className="w-4 my-auto h-4 mr-2" />
+                        <BookOpen className="w-4 h-4 mr-2" />
                         Transcript
                       </TabsTrigger>
                       <TabsTrigger
                         value="qa"
-                        className="data-[state=active]:border-b-2  my-auto flex px-8 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
+                        className="data-[state=active]:border-b-2  flex px-8 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
                       >
-                        <MessageSquare className="w-4 h-4 mr-2 my-auto" />
+                        <MessageSquare className="w-4 h-4 mr-2" />
                         Q&A
                       </TabsTrigger>
                       <TabsTrigger
                         value="topics"
-                        className="data-[state=active]:border-b-2 my-auto flex mx-16   data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
+                        className="data-[state=active]:border-b-2  flex  mx-16 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
                       >
-                        <List className="w-4 h-4 mr-2 my-auto " />
-                        <span className="w-28">Find Topics</span>
+                        <List className="w-4 h-4 mr-2" />
+                        Find Topics
                       </TabsTrigger>
                       <TabsTrigger
                         value="discover"
-                        className="data-[state=active]:border-b-2 my-auto flex  mx-16 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
+                        className="data-[state=active]:border-b-2  flex  mx-16 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
                       >
-                        <List className="w-4 h-4 mr-2 my-auto" />
+                        <List className="w-4 h-4 mr-2" />
                         Discover
                       </TabsTrigger>
                     </TabsList>
@@ -1199,13 +1227,8 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                   key={index}
                                   className="text-2xl font-bold text-purple-800 dark:text-purple-300"
                                 >
-                                <h1
-                                  key={index}
-                                  className="text-2xl font-bold text-purple-800 dark:text-purple-300"
-                                >
                                   {line.replace("# ", "")}
                                 </h1>
-                              );
                               );
                             } else if (line.startsWith("## ")) {
                               return (
@@ -1213,13 +1236,8 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                   key={index}
                                   className="text-xl font-semibold text-purple-700 dark:text-purple-400"
                                 >
-                                <h2
-                                  key={index}
-                                  className="text-xl font-semibold text-purple-700 dark:text-purple-400"
-                                >
                                   {line.replace("## ", "")}
                                 </h2>
-                              );
                               );
                             } else if (line.startsWith("### ")) {
                               return (
@@ -1227,13 +1245,8 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                   key={index}
                                   className="text-lg font-medium text-purple-600 dark:text-purple-500"
                                 >
-                                <h3
-                                  key={index}
-                                  className="text-lg font-medium text-purple-600 dark:text-purple-500"
-                                >
                                   {line.replace("### ", "")}
                                 </h3>
-                              );
                               );
                             } else if (line.startsWith("- ")) {
                               return (
@@ -1241,18 +1254,8 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                   key={index}
                                   className="list-disc list-inside"
                                 >
-                                <ul
-                                  key={index}
-                                  className="list-disc list-inside"
-                                >
                                   <li
                                     dangerouslySetInnerHTML={{
-                                      __html: line
-                                        .replace("- ", "")
-                                        .replace(
-                                          /\*\*(.*?)\*\*/g,
-                                          "<strong>$1</strong>"
-                                        ),
                                       __html: line
                                         .replace("- ", "")
                                         .replace(
@@ -1269,18 +1272,10 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                   key={index}
                                   className="list-decimal list-inside"
                                 >
-                                <ol
-                                  key={index}
-                                  className="list-decimal list-inside"
-                                >
                                   <li
                                     dangerouslySetInnerHTML={{
                                       __html: line
                                         .replace(/^\d+\. /, "")
-                                        .replace(
-                                          /\*\*(.*?)\*\*/g,
-                                          "<strong>$1</strong>"
-                                        ),
                                         .replace(
                                           /\*\*(.*?)\*\*/g,
                                           "<strong>$1</strong>"
@@ -1293,19 +1288,12 @@ Unlike traditional programming, where explicit instructions are provided, machin
                               line.startsWith("**") &&
                               line.endsWith("**")
                             ) {
-                              );
-                            } else if (
-                              line.startsWith("**") &&
-                              line.endsWith("**")
-                            ) {
                               return (
                                 <p key={index} className="font-bold">
                                   {line.replace(/\*\*/g, "")}
                                 </p>
                               );
-                              );
                             } else if (line.trim() === "") {
-                              return <br key={index} />;
                               return <br key={index} />;
                             } else {
                               return (
@@ -1316,13 +1304,8 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                       /\*\*(.*?)\*\*/g,
                                       "<strong>$1</strong>"
                                     ),
-                                    __html: line.replace(
-                                      /\*\*(.*?)\*\*/g,
-                                      "<strong>$1</strong>"
-                                    ),
                                   }}
                                 />
-                              );
                               );
                             }
                           })}
@@ -1339,9 +1322,6 @@ Unlike traditional programming, where explicit instructions are provided, machin
                         <h2 className="font-semibold">
                           Ask Questions About the Lecture
                         </h2>
-                        <h2 className="font-semibold">
-                          Ask Questions About the Lecture
-                        </h2>
                       </div>
 
                       {/* Messages Area */}
@@ -1350,11 +1330,6 @@ Unlike traditional programming, where explicit instructions are provided, machin
                           {chatMessages.map((msg, index) => (
                             <div
                               key={index}
-                              className={`flex ${
-                                msg.sender === "user"
-                                  ? "justify-end"
-                                  : "justify-start"
-                              }`}
                               className={`flex ${
                                 msg.sender === "user"
                                   ? "justify-end"
@@ -1417,9 +1392,6 @@ Unlike traditional programming, where explicit instructions are provided, machin
                         <h2 className="font-semibold">
                           Key Topics & Timestamps
                         </h2>
-                        <h2 className="font-semibold">
-                          Key Topics & Timestamps
-                        </h2>
                       </div>
 
                       {/* Topics List */}
@@ -1436,9 +1408,6 @@ Unlike traditional programming, where explicit instructions are provided, machin
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center w-full gap-3">
                                   <Clock className="h-5 w-5 text-purple-500" />
-                                  <span className="text-black dark:text-gray-100">
-                                    {topic.title}
-                                  </span>
                                   <span className="text-black dark:text-gray-100">
                                     {topic.title}
                                   </span>
@@ -1462,24 +1431,66 @@ Unlike traditional programming, where explicit instructions are provided, machin
                       {/* Header */}
                       <div className="p-4 border-b dark:border-gray-700">
                         <h2 className="font-semibold">
-                          Discover content related to the lecture
+                          Discover based on the lecture
                         </h2>
                       </div>
 
-                      {/* Topics List */}
-                      <ScrollArea className="h-[440px]">
-                       <SearchPage query="Machine Learning" />
+                
+                      <ScrollArea className="h-[440px] p-4">
+                      <SearchPage query="machine learning" />
                       </ScrollArea>
                     </TabsContent>
                   </div>
                 </Tabs>
               </div>
 
-           
+              {/* Related Courses */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="overflow-hidden p-8">
+                  <BackgroundGradient className="rounded-xl">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-md bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                          <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium">
+                            Deep Learning Fundamentals
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Neural networks, backpropagation, and more
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </BackgroundGradient>
+                </Card>
+
+                <Card className="overflow-hidden p-8">
+                  <BackgroundGradient className="rounded-xl">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-md bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                          <BookOpen className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium">
+                            Natural Language Processing
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Text analysis, sentiment, and transformers
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </BackgroundGradient>
+                </Card>
+              </div>
             </div>
           </div>
 
-          <div className="mt-16 ">
+           {/* Additional Widgets Section */}
+           <div className="mt-16 ">
             
             {/* Stats Widget */}
             <div className="my-16 ">
@@ -1540,7 +1551,6 @@ Unlike traditional programming, where explicit instructions are provided, machin
             </div>
           </div>
         </main>
-       
 
         {/* Fixed Quiz Button */}
         <div className="fixed bottom-6 right-6 z-20">
