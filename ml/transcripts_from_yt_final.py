@@ -2,6 +2,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 load_dotenv()
+import json
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=GROQ_API_KEY)
@@ -48,6 +49,10 @@ def get_transcript_with_timestamps(youtube_url):
             "end": transcript_data[-1]["end"],  # Ends at the last available subtitle
             "text": " ".join(current_text)
         })
+
+    # Save to file
+    with open('transcripts_with_timestamps.json', 'w') as f:
+        json.dump(grouped_transcript, f, indent=4)
 
     return grouped_transcript
 

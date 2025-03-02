@@ -11,6 +11,7 @@ import os
 import warnings
 import tempfile
 import requests
+from qna_using_pinecone import store_embeddings, query_pinecone  # Import the functions
 warnings.filterwarnings("ignore")
 
 load_dotenv()
@@ -209,7 +210,25 @@ def all():
         notes = generate_notes_from_yt_in(youtube_url)
         keywords = generate_keywords(youtube_url)
 
+        # Store embeddings
+        store_embeddings()
+
         return jsonify({"transcript_with_timestamps": transcript_with_timestamps, "notes": notes, "keywords": keywords}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    
+@app.route('/query', methods=['POST'])
+def query_route():
+    try:
+        data = request.get_json()
+        query_text = data.get("query", "")
+
+        if not query_text:
+            return jsonify({"error": "No query provided"}), 400
+
+        response = query_pinecone(query_text)
+        return jsonify({"response": response}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     

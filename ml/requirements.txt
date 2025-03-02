@@ -4,6 +4,7 @@ langchain
 langchain-community
 langchainhub
 langchain-groq
+langchain_openai
 langgraph
 youtube_search
 youtube-transcript-api
@@ -16,3 +17,7 @@ imblearn
 requests
 audio-extract
 pytube
+pinecone
+pinecone-client 
+pinecone[grpc]
+
