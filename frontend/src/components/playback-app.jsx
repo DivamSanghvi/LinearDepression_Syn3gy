@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import axios from "axios";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -449,38 +450,42 @@ Unlike traditional programming, where explicit instructions are provided, machin
     document.body.removeChild(element);
   };
 
-  const sendMessage = () => {
+  
+  const sendMessage = async () => {
+    console.log("sending message");
     if (messageInput.trim() === "") return;
-
+  
     // Add user message
     setChatMessages([
       ...chatMessages,
       { sender: "user", message: messageInput },
     ]);
     setIsLoading(true);
-
-    // Simulate AI response after a delay
-    setTimeout(() => {
-      const aiResponses = [
-        "Based on the video, machine learning is a subset of AI that focuses on algorithms that learn from data.",
-        "Supervised learning uses labeled data, while unsupervised learning finds patterns in unlabeled data.",
-        "Feature extraction is the process of selecting the most relevant attributes from your dataset.",
-        "The evaluation metrics discussed in the video include accuracy, precision, recall, and F1 score.",
-        "The video mentions that deep learning is a subset of machine learning that uses neural networks with multiple layers.",
-      ];
-
-      const randomResponse =
-        aiResponses[Math.floor(Math.random() * aiResponses.length)];
+  
+    try {
+      // Send the user's message to the API
+      const response = await axios.post('http://localhost:5001/query', {
+        query: messageInput,
+      });
+  
+      // Add the AI response to the chat
       setChatMessages([
         ...chatMessages,
         { sender: "user", message: messageInput },
-        { sender: "ai", message: randomResponse },
+        { sender: "ai", message: response.data.response },
       ]);
+    } catch (error) {
+      console.error('Failed to fetch AI response:', error);
+      setChatMessages([
+        ...chatMessages,
+        { sender: "user", message: messageInput },
+        { sender: "ai", message: "Failed to fetch AI response. Please try again." },
+      ]);
+    } finally {
       setMessageInput("");
       setIsLoading(false);
-    }, 1500);
+    }
   };
-
   const addNote = () => {
     if (newNote.trim() !== "") {
       setNotes([...notes, newNote]);
@@ -549,12 +554,14 @@ Unlike traditional programming, where explicit instructions are provided, machin
         }),
       });
 
+
       const data = await res.json();
 
       setVideoData(data);
-      setTranscript(data.notes);
+      setTranscript(data.notes); 
       setKeywords(data.keywords.split(",").map((keyword) => keyword.trim()));
       setTimestamps(data.transcript_with_timestamps);
+      console.log(timestamps)
       setVideoSrc(""); // Clear local video if YouTube is selected
       toast("YouTube Video Loaded", {
         description: "The video has been loaded successfully.",
@@ -574,6 +581,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
   // Take screenshot of the current frame
   const takeScreenshot = () => {
     if (youtubeVideoId && youtubePlayerRef.current) {
+      
       // For YouTube videos, we need to use a different approach
       // since we can't directly access the video element
       const iframe = document.getElementById("youtube-player");
@@ -1256,7 +1264,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                       </div>
                       <ScrollArea className="h-[440px] p-4">
                         <div className="prose dark:prose-invert max-w-none">
-                          {transcript.split("\n").map((line, index) => {
+                          {transcript?.split("\n").map((line, index) => {
                             if (line.startsWith("# ")) {
                               return (
                                 <h1
@@ -1349,78 +1357,75 @@ Unlike traditional programming, where explicit instructions are provided, machin
                       </ScrollArea>
                     </TabsContent>
 
-                    <TabsContent
-                      value="qa"
-                      className="m-0 h-full flex flex-col"
-                    >
-                      {/* Header */}
-                      <div className="p-4 border-b dark:border-gray-700">
-                        <h2 className="font-semibold">
-                          Ask Questions About the Lecture
-                        </h2>
-                      </div>
+                    <TabsContent value="qa" className="m-0 h-full flex flex-col">
+  {/* Header */}
+  <div className="p-4 border-b dark:border-gray-700">
+    <h2 className="font-semibold">
+      Ask Questions About the Lecture
+    </h2>
+  </div>
 
-                      {/* Messages Area */}
-                      <ScrollArea className="flex-1 p-4">
-                        <div className="space-y-4">
-                          {chatMessages.map((msg, index) => (
-                            <div
-                              key={index}
-                              className={`flex ${
-                                msg.sender === "user"
-                                  ? "justify-end"
-                                  : "justify-start"
-                              }`}
-                            >
-                              <div
-                                className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                                  msg.sender === "user"
-                                    ? "bg-purple-600 text-white"
-                                    : "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100"
-                                }`}
-                              >
-                                {msg.message}
-                              </div>
-                            </div>
-                          ))}
+  {/* Messages Area */}
+  <ScrollArea className="flex-1 h-[440px] p-4">
+    <div className="space-y-4">
+      {chatMessages.map((msg, index) => (
+        <div
+          key={index}
+          className={`flex ${
+            msg.sender === "user"
+              ? "justify-end"
+              : "justify-start"
+          }`}
+        >
+          <div
+            className={`max-w-[80%] p-3 rounded-lg text-sm ${
+              msg.sender === "user"
+                ? "bg-purple-600 text-white"
+                : "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100"
+            }`}
+          >
+            {msg.message}
+          </div>
+        </div>
+      ))}
 
-                          {/* AI is Thinking Indicator */}
-                          {isLoading && (
-                            <div className="flex justify-start">
-                              <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 dark:bg-slate-800 flex items-center gap-2">
-                                <RotateCcw className="h-4 w-4 animate-spin" />
-                                <span>AI is thinking...</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </ScrollArea>
+      {/* AI is Thinking Indicator */}
+      {isLoading && (
+        <div className="flex justify-start">
+          <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 dark:bg-slate-800 flex items-center gap-2">
+            <RotateCcw className="h-4 w-4 animate-spin" />
+            <span>AI is thinking...</span>
+          </div>
+        </div>
+      )}
+    </div>
+  </ScrollArea>
 
-                      {/* Input Box */}
-                      <div className="p-4 border-t dark:border-gray-700">
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Ask a question about the lecture..."
-                            value={messageInput}
-                            onChange={(e) => setMessageInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                sendMessage();
-                              }
-                            }}
-                            className="border-purple-200 focus-visible:ring-purple-500 dark:border-purple-800"
-                          />
-                          <Button
-                            onClick={sendMessage}
-                            disabled={isLoading}
-                            className="bg-purple-600 hover:bg-purple-700"
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </TabsContent>
+  {/* Input Box */}
+  <div className="p-4 border-t dark:border-gray-700">
+    <div className="flex gap-2">
+      <Input
+        placeholder="Ask a question about the lecture..."
+        value={messageInput}
+        onChange={(e) => setMessageInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        }}
+        className="border-purple-200 focus-visible:ring-purple-500 dark:border-purple-800"
+      />
+      <Button
+        onClick={sendMessage}
+        disabled={isLoading}
+        className="bg-purple-600 hover:bg-purple-700"
+      >
+        <Send className="h-4 w-4" />
+      </Button>
+    </div>
+  </div>
+</TabsContent>
 
                     <TabsContent value="topics" className="m-0 h-full">
                       {/* Header */}

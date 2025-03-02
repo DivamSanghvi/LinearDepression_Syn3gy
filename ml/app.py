@@ -217,9 +217,11 @@ def all():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-    
-@app.route('/query', methods=['POST'])
+@app.route('/query', methods=['POST', 'OPTIONS'])
 def query_route():
+    if request.method == 'OPTIONS':  # Handle preflight request
+        return '', 200
+
     try:
         data = request.get_json()
         query_text = data.get("query", "")
@@ -231,7 +233,6 @@ def query_route():
         return jsonify({"response": response}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
 
 if __name__ == '__main__':
     app.run(debug=False, port=5001)
