@@ -1,0 +1,235 @@
+[0.00 - 7.44]:  The problem is 0 1 knapsack problem. In this video I will explain what is 0 1 knapsack problem
+[8.24 - 13.84]:  and how it can be solved using dynamic programming. We will understand its approach.
+[14.72 - 21.20]:  Next I will show you a tabular method for solving this one. Then also I will show you a
+[21.20 - 25.84]:  sets method for solving this one. So there are two methods we will see both the methods.
+[26.72 - 32.40]:  First of all let us understand what the problem is. Here I have some four objects.
+[33.28 - 39.76]:  For each object there is some profit and there is some weight and there is a bag of capacity m
+[39.76 - 50.32]:  that is 8 is given. The objective is to fill this bag with these objects. So can I put them all?
+[51.28 - 58.32]:  See the capacity is 8 but the total weights of all these objects is 14. So all objects cannot
+[58.32 - 63.12]:  be filled in the bag. So I have to carry few of those, some of those objects, there is subset of
+[63.12 - 69.44]:  those objects and I have to carry them and sell them at other place. So once I sell I get this profit.
+[70.88 - 78.80]:  So I have to fill the object such that the total profit is maximized and I have to give the solution
+[78.80 - 85.92]:  in the form of a set for each object. Like for example this is included and this is not included
+[85.92 - 90.96]:  or not included. Like this I have to write down which one is included and not included. So it
+[90.96 - 98.40]:  means I can write down each xi either 0 or 1. Means the values can be 0 or 1 but not fraction.
+[99.12 - 106.72]:  So it means that the object that I am going to carry are not divisible, breakable. So I cannot
+[106.72 - 113.44]:  take the fraction of that object. So this means these are some solid objects. Maybe a mixer or
+[113.44 - 119.92]:  microwave oven or a router. It can be something like this. So which I cannot take a half of a
+[119.92 - 127.28]:  mixer in the bag. So these are indivisible objects. So either I should carry the whole object or don't
+[127.28 - 135.92]:  carry it at all. So I have to carry the object such that the sum of their profits should be maximized
+[136.72 - 144.24]:  and some of their weights should be less than or equal to the capacity of the bag.
+[145.60 - 148.80]:  Now let us know the approach of dynamic programming for solving this one.
+[149.84 - 154.00]:  Now few important things about dynamic programming. Dynamic programming is useful for solving
+[154.00 - 160.16]:  optimization problem. Yes this demands maximum results so it's optimization problem. Second thing
+[160.96 - 166.88]:  dynamic programming says that a problem should be solved in sequence of decisions. So yes we
+[166.88 - 170.88]:  can take the sequence of decisions for every object we can take shall I include or not.
+[170.88 - 176.08]:  Include or not. Include or not. So I can take decisions. I can even start taking the decision
+[176.08 - 181.04]:  of the last object also. Include or not. Include or not. So usually in this one we take the decision
+[181.04 - 186.72]:  from last object towards first object. So we can take sequence of decision. Next thing one more
+[186.72 - 192.56]:  point that dynamic programming says that you should try all possible solutions and pick up the best
+[192.56 - 198.88]:  one. Now how many possible solutions are there. See when I am writing the solution in the form of
+[198.88 - 205.60]:  zeros and ones then it can be zero zero zero means no object is included or one one one one means
+[205.60 - 211.36]:  all objects are included or zero zero zero one means only fourth object is included or first
+[211.68 - 217.68]:  object is included or first two objects are included like this there are many possible solutions
+[217.68 - 222.72]:  and some of them may be feasible some may not be feasible like all objects I cannot include.
+[222.72 - 227.52]:  So anyway I should try all of them and pick up the best one. So total how many solutions will
+[227.52 - 233.44]:  be there. So like four zeros and ones form if I continue so I will be getting two power four
+[233.44 - 240.32]:  solutions. So I should try to pour four solutions for n objects it will be two power n solutions.
+[240.32 - 244.00]:  So if I try out all then the time complexity will be two power n.
+[245.36 - 250.72]:  This is too much time consuming. So dynamic programming shows a easy method for doing the
+[250.72 - 257.84]:  same thing. We will not we will be indirectly trying all two power n right but not directly so
+[257.84 - 263.44]:  we will not spend that much time. Let us solve this problem using tabulation method. Tabulation
+[263.52 - 269.44]:  method let us see how to fill this values and how to get the solution for this problem.
+[270.16 - 276.32]:  So for solving as the capacity of the bag is eight so I have taken the columns starting from zero to
+[276.32 - 285.36]:  eight. So this means that though the capacity is eight but we will not consider that eight at once.
+[285.36 - 290.72]:  So we'll add weight one by one so starting from zero then let us assume weight is one weight is
+[290.72 - 297.28]:  two and so on. Then rows four objects so I have taken five zero one two three four so starting
+[297.28 - 302.72]:  from zero. So it means one by one we will consider the object. So initially we will not consider
+[302.72 - 308.72]:  any object means we will not include any object in the bag. So for filling this we have a formula.
+[309.28 - 315.44]:  So I will show you formula after some time after filling some values. So let us see first row as
+[315.44 - 320.48]:  zero object no object is included then what will be the profit. So in these boxes I will be writing
+[320.48 - 327.04]:  the profit. So there is no profit gained when no object is included and even when the capacity of
+[327.04 - 332.48]:  the bag is zero these are the these are the capacity these are the weights right and these are weights
+[332.48 - 337.76]:  and the profits of the objects. So these are the weights and there is then zero weight is there
+[337.76 - 347.20]:  then all these are zero zero zero. Next now I will start filling so for that I will consider first
+[347.20 - 352.40]:  object when I consider first object I will take this row and I will ignore all other objects
+[353.84 - 358.64]:  and similarly when I go to second row I will ignore the remaining and I will take the second
+[358.64 - 365.44]:  object as well as the first object I will consider the first object also. So it means whenever I am
+[365.44 - 372.16]:  in ith row I will consider all the objects in the previous rows also. So for the first row
+[372.16 - 379.36]:  directly I can fill it let us see first row what is the weight of the first object two. So it can
+[379.36 - 386.08]:  be filled only when the bag capacity is a two so here so what will be the profit one so fill one here
+[387.28 - 393.44]:  then this means this is same value previous value usually we write previous value only if required
+[394.16 - 401.36]:  then rest of the cells the capacity of the bag is increasing but how many objects I am considering
+[401.36 - 406.88]:  only one so I don't have anything more to fill in the bag so only that object I can fill and
+[406.88 - 415.52]:  it will be getting profit as one one one only. I will fill the second row also right third row
+[415.52 - 421.60]:  also in the same way then I will write on the formula let us go to second row I am going to
+[421.60 - 426.88]:  consider second object so as I said when I consider second object I should also include the first
+[426.88 - 432.72]:  object so first let us look at the second object see the weight of the second object is three it
+[432.72 - 438.48]:  can be filled in the bag only if the capacity is a three so in this cell only it can be filled
+[438.48 - 444.24]:  so what is the profit that I will get two so put two here what about this side it will be
+[444.24 - 452.08]:  same value same value as the previous row then beyond this what should come here so as I said that
+[452.16 - 458.00]:  when you are taking second object you should also consider first object so if I fill the second
+[458.00 - 465.04]:  object also in the bag total weight requires how much five so this is five and total profit will
+[465.04 - 470.88]:  be three so both the objects can be filled when the capacity is five and the total profit will
+[470.88 - 478.64]:  be three so here both of them can be filled right both of them I am considering both of them
+[478.64 - 483.20]:  so now I have only two objects and this is giving for both the objects are filled
+[483.20 - 488.88]:  so rest of the values will be three three three then what will be the value here so as this is two
+[488.88 - 493.92]:  so this will also be two so I can take the previous value or this value whichever is maximum I can
+[493.92 - 500.16]:  take the same thing now I will fill the third object also then for the fourth object I will
+[500.16 - 506.72]:  show you the formula third object when I consider third object if you look at these the maximum
+[506.72 - 511.04]:  weight is this one and as they are arranged in the increasing order of their weight so this is
+[511.04 - 517.12]:  weight is four so this object can be filled in the bag only if the capacity of the bag is four
+[517.84 - 522.48]:  so this will be included in the bag when the capacity is four so the total profit that will
+[522.48 - 530.24]:  be getting is five so this is five then before that whatever the previous row values are so two
+[530.24 - 538.40]:  one and zero now beyond this let us see see when I am on the third object I should also consider
+[539.12 - 547.20]:  first and the second object also so if I just check them this is four and if I take these two
+[547.20 - 553.04]:  objects it will be total six weight weight is six so these two objects I can fill if the weight is
+[553.04 - 560.32]:  six right actually if I want to fill these two then these two I can fill when the weight is seven
+[561.44 - 567.68]:  this two I can fill if the weight is five and what will be the profit three this object itself is
+[567.68 - 576.00]:  five right now I will consider these two six and the total weight will be six so at six it will be
+[576.00 - 585.28]:  six only right and when I consider these two so total is seven seven and the profit is also seven
+[585.28 - 591.84]:  so at seven the profit is seven can I include all three it will be ten but the capacity of the bag
+[591.84 - 598.72]:  is only eight so I cannot include all three then beyond this the value will be seven only and before
+[598.72 - 609.28]:  this one the value will be same as this five five all right now I will show you the formula and I
+[609.28 - 616.56]:  will fill fourth row with that formula the formula is like this if I call this table as v this table
+[616.56 - 629.04]:  as v then v of i comma w i is the row number w is the column number is maximum of v of i minus one
+[629.04 - 634.64]:  that is from the previous row I should take same value means previous row value I should take this
+[634.64 - 644.96]:  is the meaning or maximum of this one or what v of i minus one comma weight minus weight of an object
+[645.92 - 656.16]:  w i plus profit of an object that you are considering now let us the follow the formula and fill all
+[656.16 - 667.36]:  these first one four comma one I will fill four comma one so v of four comma one is maximum of
+[667.76 - 677.28]:  v of three comma one like this is four so this will be three comma v of three comma weight is
+[677.28 - 686.08]:  how much one minus weight of an object weight of an object is five one minus five plus profit of that
+[686.64 - 698.16]:  object is six six now this becomes a three comma minus four there is no such location so that value
+[698.16 - 704.96]:  becomes undefined so only this value will be defined v of three comma one will be defined so v of three
+[704.96 - 711.76]:  comma one is what zero so I should take zero only there is will not be any such index v of three comma
+[711.84 - 718.56]:  minus four yes for that I have to take zero only so it means up to what I will be getting negative
+[718.56 - 725.60]:  numbers up to fifth weight up to fifth weight so till here I should fill these values as it is only
+[727.20 - 732.72]:  so that's what I was saying that this can be considered or this can be considered in fourth
+[732.72 - 738.40]:  so write on its value and all previous values as it is so the same thing here because there
+[738.40 - 744.40]:  you will be getting negative so till fifth weight till fifth weight before that till before that I
+[744.40 - 751.60]:  have filled as it is now this fifth weight how to fill I will show you for this value four comma five
+[752.48 - 766.40]:  v of four comma five is maximum of v of three comma five comma v of three comma weight is how much
+[766.40 - 775.28]:  five minus weight of the subject is how much five plus profit of the subject is how much six
+[775.92 - 782.40]:  six let us see v of three comma five three comma five is how much five comma
+[783.36 - 790.00]:  v of three comma five minus one five minus five zero v of three comma zero three comma zero is zero
+[790.56 - 797.84]:  plus six so which is greater six is greater so fill this value with six so that means this
+[797.92 - 807.92]:  object is included here now four comma six I will find out v of four comma six is maximum of
+[809.12 - 816.56]:  v of three comma six comma v of three comma weight is six right and the weight of the
+[816.56 - 825.44]:  object is five plus profit of the object is six so how much this is v of three comma six is how much
+[825.52 - 834.80]:  three comma six is six six comma v of three comma six minus one six minus five that is one
+[834.80 - 843.04]:  three comma one three comma one is how much zero zero plus six so the answer is both are same only
+[843.04 - 852.48]:  so take six only next value four comma seven v of four comma seven maximum of
+[853.92 - 862.96]:  v of three comma seven comma v of three comma weight is how much seven so weight of the object is
+[862.96 - 871.04]:  five seven minus five plus profit is six so this is three comma seven is how much seven comma
+[871.60 - 877.84]:  this is v of three comma seven minus five is two three comma two so three comma two is how much one
+[878.40 - 884.96]:  plus six so this is one plus six so this is seven only both I am getting seven or seven so
+[884.96 - 896.32]:  they are same only take seven v of four comma eight four comma eight is maximum of v of
+[900.00 - 907.20]:  three comma eight comma v of three comma weight is eight minus the weight of an object is five
+[907.20 - 917.44]:  plus profit is six three comma eight how much three comma eight is seven comma v of three comma eight
+[917.44 - 924.48]:  minus five is three three comma three how much two so this is two plus six so how much this is
+[924.48 - 931.20]:  this is seven and this is eight so answer is eight so this is how the table is filled so I have used
+[931.20 - 938.16]:  the formula for few cells in the last row and this can also be filled directly also without the
+[938.16 - 946.00]:  formula now let me show you how to fill this last row directly I am considering fourth object whose
+[946.00 - 953.52]:  weight is five and the profit is six so in fifth column just write six its profit and what to write
+[953.60 - 964.64]:  on the cells before that same value as the previous row this what you do first then beyond this now the
+[964.64 - 971.12]:  weight is five beyond this the capacity of the bag is increasing so I can include other objects also
+[971.12 - 977.04]:  so let us check other objects what I can include in the sixth column this object is definitely
+[977.04 - 985.04]:  because its profit is maximum right five plus two seven at six nothing will happen so take six only
+[985.04 - 992.80]:  at seven I can consider these two these two so this is six plus one seven seven then at eight
+[992.80 - 999.04]:  when the bag capacity eight which of the objects I can consider five plus three eight so six and two
+[999.60 - 1006.96]:  eight so this is eight so whichever objects that you can consider you just add them and in that
+[1006.96 - 1012.64]:  capacity if they are fitting in you write on the max total profit so this is a simple method for
+[1012.64 - 1018.00]:  filling the cells instead of following this complex formula you can follow that method so I have shown
+[1018.08 - 1033.12]:  you both solution I have to write down x1 x2 x3 x4 values now these now for finding these answers
+[1033.12 - 1038.24]:  actually I will be taking sequence of decision now see the decisions can be taken only if you
+[1038.24 - 1043.92]:  have the data yes we have kept the data ready the formula was used for filling this data now I have
+[1043.92 - 1048.24]:  to take the sequence of decision so how to solve so actually I have to know which object should be
+[1048.24 - 1054.32]:  included and which should not be included in the bag so let us come with the maximum profit that is
+[1054.32 - 1061.76]:  eight the last cell this eight is generated only in fourth row and in that previous row you don't
+[1061.76 - 1069.04]:  find eight anywhere so it means we got this eight because of including fourth object only so include
+[1069.12 - 1076.88]:  the fourth object right profit is eight fourth object is included because eight is not there in
+[1076.88 - 1085.28]:  previous row now what is the profit of the fourth object eight minus profit is six so this is two
+[1086.56 - 1092.32]:  now remaining profit is two now check whether two is there in the third row now I have to check for
+[1092.32 - 1098.48]:  the third object fourth then third then second and then one so third object two is there yes
+[1098.56 - 1104.32]:  the same value two is there in the previous row also yes it is there so it means it is not because
+[1104.32 - 1111.52]:  of third object so don't include third object now let us consider second object is it two there
+[1111.52 - 1117.44]:  here in the second row yes two is there here is it there in the first row also no so it means this
+[1117.44 - 1124.40]:  we got because of inclusion of the second object so take this as one so now remaining is two minus
+[1124.80 - 1131.92]:  so zero now zero was it there in the first object so I have to consider the first object yes zero
+[1131.92 - 1137.12]:  was there in the first object row was it there in the zero also yes it was there in the zero
+[1137.12 - 1143.36]:  also this row also so it means don't include the object so this is the solution so it means
+[1143.36 - 1149.68]:  which objects are included in the bag x2 and x4 two objects are included in the bag so that is
+[1149.68 - 1156.32]:  x2 is this one x4 is this one so total profit will be eight so this is the maximum profit of
+[1156.32 - 1163.28]:  zero napsack problem next I will solve it using sets method same problem I will solve it using
+[1163.28 - 1169.12]:  set method now let us solve it using set method set method will try to find all possibilities
+[1169.12 - 1175.68]:  and pick up the best solution so let us see how sets are generated we will prepare a set of order
+[1175.68 - 1183.84]:  pair that is profit and weight so we will start with the set zero set zero in this we say no
+[1183.84 - 1191.12]:  profit no weight means nothing is included in the bag then we will consider the first object
+[1191.12 - 1196.16]:  that is one comma two whose profit is one and the weight is two so consider the first object so
+[1196.16 - 1203.12]:  prepare s zero of one and include this first object in the bag so it will be one comma two
+[1203.52 - 1209.84]:  so actually add one comma to this order pair so we get this one now prepare set one
+[1211.36 - 1220.56]:  then merge these two order pairs and prepare this one so this means that we have considered first
+[1220.56 - 1227.44]:  object so two order pairs are showing that first object is not included first object is included
+[1228.00 - 1235.84]:  so now let us prepare next set by considering second object so that is two plus three so
+[1235.84 - 1242.96]:  prepare next set that is s one one so add two three to these order pairs two plus three so this
+[1242.96 - 1250.32]:  is two comma three then two plus three is added so this will become three plus three comma five
+[1250.88 - 1260.16]:  then this is second set for the second object so when you consider second object total four order
+[1260.16 - 1270.16]:  pairs all these are merged so this is one two and two three and this is three five this means that
+[1270.16 - 1276.88]:  no object is included first object is included second object is included both objects are included
+[1277.60 - 1287.20]:  so all the order pairs we got then prepare s two of one by considering third object five comma four
+[1287.20 - 1292.96]:  add five comma four to all so this five plus four so this is five plus four s
+[1295.20 - 1301.12]:  five comma four only so five plus four so this will become six and six so this is six comma six
+[1302.00 - 1308.72]:  five plus four so this is seven comma seven so five is added to this and four is added to this
+[1308.72 - 1316.56]:  so this become eight comma nine eight comma nine now merge all these and take order pairs so
+[1317.12 - 1329.60]:  set three we get as zero zero one two then two three then three five then five four
+[1331.60 - 1342.72]:  then six six seven seven now here eight comma nine profit is eight and the weight is nine so that
+[1342.72 - 1353.84]:  is exceeding the capacity of the bag don't include that one so we have discarded that right now this
+[1353.84 - 1361.92]:  is set three in this one if you observe this is profit this is weight profit increase weight increase
+[1361.92 - 1367.92]:  then from this profit increase weight also increase profit increased and the weight also increase but
+[1367.92 - 1375.20]:  here profit increase weight is decreased from five to four this is not possible profit is increasing
+[1375.20 - 1380.96]:  so the weight is also increasing but weight is decreased how it is possible so that's why
+[1380.96 - 1387.36]:  this order pair are wrong so we have to discard any one so we will discard the one with the lesser
+[1387.36 - 1395.04]:  profit smaller profit so one two three four five six now we have only six order pairs because two
+[1395.04 - 1400.80]:  were invalid one was this was giving wrong values and this was exceeding the capacity of the bag
+[1401.68 - 1406.72]:  so cutting off this one we call it as a dominance rule so with the dominance rule the value is
+[1406.72 - 1413.84]:  order pair is discarded now I will consider fourth object six comma five I will include so I will
+[1413.84 - 1422.08]:  prepare set three one by considering fourth object six comma five so first order pair is six comma five
+[1422.08 - 1429.44]:  next order pair is six and five are added so this is seven comma seven then six and five are added
+[1429.44 - 1437.20]:  so this is eight comma eight and then six and five when they are added it will become eleven comma nine
+[1438.48 - 1445.28]:  six and five added so this become twelve comma eleven and six five when added to seven and seven
+[1445.28 - 1454.40]:  so this becomes thirteen comma twelve now I have to prepare set four this is the final set most
+[1454.40 - 1461.76]:  these order pairs so zero zero is taken from here one comma two and two comma three and five comma
+[1461.76 - 1470.08]:  four six comma six and seven comma seven they are coming as it is now in this one six comma five is
+[1470.08 - 1476.64]:  there so six comma five should come before seven comma seven so six comma five now here again you
+[1476.64 - 1482.40]:  see the profit is remaining same but the weight is reducing so this should be removed then seven
+[1482.40 - 1489.60]:  comma seven is there then eight comma eight is there then remaining eleven comma nine exceeding
+[1489.60 - 1496.00]:  the capacity of the bag nine eleven and twelve so all three order pairs are gone so these are the
+[1496.00 - 1504.40]:  order pairs I have so if you observe the method is generating all possibilities so this is one easy
+[1504.40 - 1509.60]:  method of finding all possibilities so the time taken by this one is almost to power n
+[1511.44 - 1516.72]:  now what is the solution so we have already sets now we take the sequence of decisions to solve this
+[1517.36 - 1526.00]:  now what is the maximum order pair eight comma eight so eight comma eight now using that I will
+[1526.00 - 1532.16]:  solve this one so the approach is similar like what we saw in the tabular method eight comma eight
+[1532.16 - 1542.00]:  belongs to set four but eight comma eight check whether it belongs to set three in the set three
+[1542.00 - 1548.32]:  eight comma eight was not there so it doesn't belong to set three therefore fourth object is
+[1548.32 - 1556.40]:  included because of that only we got four comma four now I should take an order pair eight comma
+[1556.40 - 1562.56]:  eight from this I should subtract the profit and weight of the fourth object so this is profit
+[1562.56 - 1570.00]:  is six and the weight is five so the order pair is how much two comma three so now I should consider
+[1570.00 - 1577.04]:  two comma three so now this was the first one now second one two comma three now I have to consider
+[1577.04 - 1584.56]:  third object so check whether it belongs to s three two comma three yes it belongs to s three and
+[1585.68 - 1592.16]:  two comma three belongs to s two check whether it belongs to s two s two comma three is there here
+[1592.16 - 1599.28]:  also it means this is not because of the third object so therefore third object is not included in
+[1599.28 - 1608.64]:  the back then now next step is I will consider second object two comma three belongs to set two
+[1608.64 - 1615.84]:  for second object two comma three now does it belong to set one but two comma three
+[1619.76 - 1625.28]:  doesn't belong to set one so two comma three was belonging to set two and two comma three doesn't
+[1625.28 - 1631.52]:  belong to set one so therefore this is because of the second object that is included now what is
+[1631.52 - 1635.84]:  the profit and weight of the second object two comma three so when you subtract two comma three
+[1635.84 - 1643.92]:  from this one two minus two is zero and three minus three is zero so this gives zero comma zero
+[1643.92 - 1651.04]:  now first object I will consider now the step is four so zero comma zero belongs to set one
+[1651.60 - 1660.16]:  and also zero comma zero belongs to set a zero therefore first object is also not included
+[1661.36 - 1666.72]:  zero comma zero belongs to s one also s zero also it means this is obtained not because of the
+[1666.72 - 1672.00]:  first object so first object is also not included then the solution is from bottom if you see zero
+[1672.08 - 1681.20]:  one zero one so the answer is zero one zero one so these two objects are included see the profit
+[1681.20 - 1687.20]:  is eight so we got a same solution with the help of sets also so this is one more method
+[1689.20 - 1694.32]:  that's all about zero one knapsack problem leave a comment and let me know whether it was easy
+[1694.32 - 1699.04]:  for you to understand so I have shown you both the steps for solving zero one knapsack problem
+[1699.04 - 1703.68]:  right in some places we find tabulation method and some places we find the sets method

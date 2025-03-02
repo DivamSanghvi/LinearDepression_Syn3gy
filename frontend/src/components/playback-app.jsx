@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/acaternity"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import QuizModal from "./quiz-modal"
 
 export default function PlaybackApp() {
   const [activeTab, setActiveTab] = useState("transcript")
@@ -1368,9 +1369,7 @@ toast.success("Screenshot Captured", {
 
         {/* Fixed Quiz Button */}
         <div className="fixed bottom-6 right-6 z-20">
-          <Button className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg rounded-full px-6">
-            Take Quiz
-          </Button>
+          <QuizModal />
         </div>
       </div>
       <Toaster />
