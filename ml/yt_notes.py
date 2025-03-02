@@ -6,23 +6,7 @@ import os
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 from youtube_transcript_api import YouTubeTranscriptApi
-
-def extract_transcript(youtube_video_url):
-    try:
-        video_id = youtube_video_url.split("=")[-1]
-        transcript_list = transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-        transcript = transcript_list.find_transcript(['en']).fetch()
-
-        # transcript = YouTubeTranscriptApi.get_transcript(video_id)
-
-        transcript_text = ""
-        for i in transcript:
-            transcript_text += " " + i["text"]
-
-        return transcript_text
-    except Exception as e:
-        print(f"Error extracting transcript: {e}")
-        return None
+from transcripts_from_yt_final import get_transcript_text
     
 # Example usage
 # youtube_video_url = "https://www.youtube.com/watch?v=oW7USk5x4do"
@@ -30,7 +14,7 @@ def extract_transcript(youtube_video_url):
 # print(transcript_text)
 
 def generate_notes_from_yt_in(youtube_url):
-    transcript_text = extract_transcript(youtube_url)
+    transcript_text = get_transcript_text(youtube_url)
     prompt = """
     You are an expert at making notes for exam purposes from YouTube videos. I will provide you with a transcript of a YouTube video, 
     and you need to generate detailed notes based on the content of the video.
@@ -64,8 +48,8 @@ def generate_notes_from_yt_in(youtube_url):
     # Return the notes content
     return response.content
 
-# a = generate_notes_from_yt_in("https://www.youtube.com/watch?v=oW7USk5x4do") best file
-# print(a['notes'])
+# a = generate_notes_from_yt_in("https://www.youtube.com/watch?v=FMtayizdFiw") 
+# print(a)
 # generate_notes_from_yt_in("https://www.youtube.com/watch?v=5iTOphGnCtg&t")
 
 
