@@ -7,12 +7,24 @@ from quiz import generate_quiz  # Import the generate_quiz function
 import os
 import warnings
 import tempfile
+import requests
 warnings.filterwarnings("ignore")
 
 load_dotenv()
 viva_chat_history = []  # Global variable to store chat history for viva_tool_final.py
 app = Flask(__name__)
 CORS(app)
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+API_URL = "https://api-inference.huggingface.co/models/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+headers = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
+
+def query(filename):
+    print("starting query")
+    with open(filename, "rb") as f:
+        data = f.read()
+    response = requests.post(API_URL, headers=headers, data=data)
+    print("end query")
+    return response.json()
 
 @app.route('/')
 def home():
@@ -62,17 +74,17 @@ def viva_feedback():
         print("Saved audio file to:", temp_audio_file_path)
         
         # Send the filename to the query function
-        sentiment_scores = query(temp_audio_file_path)
-        print("Sentiment scores:", sentiment_scores)
+        # sentiment_scores = query(temp_audio_file_path)
+        # print("Sentiment scores:", sentiment_scores)
         
         # Remove the locally stored audio file
         os.remove(temp_audio_file_path)
         print("Removed audio file:", temp_audio_file_path)
         
-        feedback = generate_feedback(question, answer, user_answer, viva_chat_history, sentiment_scores)
+        feedback = generate_feedback(question, answer, user_answer, viva_chat_history)
         print("Feedback generated:", feedback)
         
-        return jsonify({"feedback": feedback, "sentiment_scores": sentiment_scores}), 200
+        return jsonify({"feedback": feedback}), 200
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
