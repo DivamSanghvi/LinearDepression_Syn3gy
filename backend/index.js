@@ -1,12 +1,15 @@
 require('dotenv').config();
 require('express-async-errors');
 const authRouter = require('./routes/auth');
+const screenshotRoutes = require('./routes/screenshotRoutes');
+
 // extra security packages
 const cors = require('cors');
 const axios = require('axios');
 
 const authenticator = require("./middleware/authentication");
 const express = require('express');
+const path = require('path');
 const app = express();
 // connectDB
 const connectDB = require('./db/connect');
@@ -19,10 +22,14 @@ const errorHandlerMiddleware = require('./middleware/error-handler');
 app.use(express.json());
 app.use(cors());
 
+// Add this middleware to serve files from the temp directory
+app.use('/screenshots', express.static(path.join(__dirname, '../frontend/temp')));
+
 app.get('/', (req, res) => {
   res.send('FSD 5');
 });
 
+app.use('/api/screenshots', screenshotRoutes);
 app.use('/api/auth', authRouter);
 
 // YouTube Search Helper

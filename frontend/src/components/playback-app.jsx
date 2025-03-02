@@ -56,6 +56,7 @@ import { Toaster } from "@/components/ui/toaster";
 import QuizModal from "./quiz-modal";
 import { SearchPage } from "@/app/test3/page";
 import { model, generationConfig, safetySettings } from "@/lib/ai";
+import html2canvas from 'html2canvas';
 
 export default function PlaybackApp() {
   const [activeTab, setActiveTab] = useState("transcript");
@@ -590,100 +591,143 @@ Unlike traditional programming, where explicit instructions are provided, machin
     encodeURIComponent(keyword)
   );
 
-  // Take screenshot of the current frame
-  const takeScreenshot = () => {
-    if (youtubeVideoId && youtubePlayerRef.current) {
-      // For YouTube videos, we need to use a different approach
-      // since we can't directly access the video element
-      const iframe = document.getElementById("youtube-player");
-      if (!iframe) return;
+  // Replace your current takeScreenshot function with this updated version
 
-      // Pause the video to get a clear screenshot
-      youtubePlayerRef.current.pauseVideo();
-
-      // Create a canvas element
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-
-      // Set canvas dimensions
-      const width = iframe.clientWidth;
-      const height = iframe.clientHeight;
-      canvas.width = width;
-      canvas.height = height;
-
-      // Draw the iframe to canvas (this is a simplified approach and may not work in all browsers)
-      // In a production app, you might need to use a server-side solution or YouTube's API
-      const ctx = canvas.getContext("2d");
-
-      // Create an image from the YouTube thumbnail as a fallback
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`;
-
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Get the image data URL
-        const dataUrl = canvas.toDataURL("image/png");
-
-        // Add to screenshots array
-        const newScreenshot = {
-          time: currentTime,
-          dataUrl,
-          explanation:
-            videoExplanations[Math.floor(currentTime)] ||
-            `Screenshot taken at ${formatTime(
-              currentTime
-            )}. This appears to be a key moment in the video.`,
-        };
-
-        setScreenshots([...screenshots, newScreenshot]);
-
-        // In the takeScreenshot function
-        toast("Screenshot Captured", {
-          description: `Screenshot taken at ${formatTime(currentTime)}`,
+  const takeScreenshot = async () => {
+    if (youtubeVideoId) {
+      // For YouTube videos
+      const currentTime = youtubePlayerRef.current?.getCurrentTime() || 0;
+      const wasPlaying = youtubePlayerRef.current?.getPlayerState() === 1;
+      
+      // Pause video temporarily
+      if (wasPlaying && youtubePlayerRef.current) {
+        youtubePlayerRef.current.pauseVideo();
+      }
+      
+      try {
+        console.log("Capturing YouTube screenshot at", formatTime(currentTime));
+        
+        // Call the backend API to get the screenshot
+        const response = await fetch('http://localhost:8000/api/screenshots/youtube', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            videoId: youtubeVideoId,
+            timestamp: currentTime
+          }),
         });
-      };
+        
+        if (!response.ok) {
+          throw new Error('Screenshot API request failed');
+        }
+        
+        // Parse the JSON response
+        const responseData = await response.json();
+        console.log("Screenshot response:", responseData);
+        
+        if (responseData.success && responseData.filePath) {
+          // Extract just the filename from the full path
+          const filename = responseData.filePath.split('\\').pop();
+          
+          // Add small delay to ensure file is written
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Create a data URL using FileReader (read directly from disk)
+          try {
+            // Instead of trying to load from a URL path, read the file directly
+            // since it's on the same machine, we'll use the full path
+            const fullPath = responseData.filePath;
+            
+            // Create a URL that can be displayed immediately in the browser
+            // For development purposes, we can use the timestamp to force a reload and bypass cache
+            const timestamp = new Date().getTime();
+            const screenshotUrl = `http://localhost:8000/screenshots/${filename}?t=${timestamp}`;
+            
+            // Add to screenshots array with proper URL
+            const newScreenshot = {
+              time: currentTime,
+              dataUrl: screenshotUrl,
+              explanation: `Screenshot at ${formatTime(currentTime)}`,
+              filePath: responseData.filePath
+            };
+            
+            setScreenshots(prevScreenshots => [...prevScreenshots, newScreenshot]);
+            console.log("Screenshot captured successfully");
+          } catch (fileError) {
+            console.error("Error reading screenshot file:", fileError);
+            throw fileError;
+          }
+        } else {
+          throw new Error('Invalid screenshot response');
+        }
+      } catch (error) {
+        console.error("Screenshot API error:", error);
+        
+        // Use fallback method for screenshot
+        fallbackScreenshot(currentTime, wasPlaying);
+      } finally {
+        // Resume playing if it was playing before
+        if (wasPlaying && youtubePlayerRef.current) {
+          youtubePlayerRef.current.playVideo();
+        }
+      }
     } else if (videoRef.current) {
-      // For local videos, we can directly access the video element
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (!video || !canvas) return;
-
-      // Pause the video to get a clear screenshot
-      video.pause();
-      setIsPlaying(false);
-
-      // Set canvas dimensions
+  
+    // For local videos - keep existing implementation
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const currentTime = video.currentTime;
+    const wasPlaying = !video.paused;
+    
+    // Pause to get clear screenshot
+    video.pause();
+    
+    try {
+      if (!canvas) throw new Error("Canvas not available");
+      
+      // Set canvas size to match video dimensions
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
-      // Draw the video frame to canvas
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
+      
+      // Draw the current video frame
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      // Get the image data URL
-      const dataUrl = canvas.toDataURL("image/png");
-
-      // Add to screenshots array
+      
+      // Add timestamp overlay
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(0, canvas.height - 30, canvas.width, 30);
+      ctx.fillStyle = "white";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText(`Time: ${formatTime(currentTime)}`, 10, canvas.height - 10);
+      
+      // Get the screenshot as data URL
+      const dataUrl = canvas.toDataURL('image/png');
+      
+      // Save the screenshot
       const newScreenshot = {
         time: currentTime,
         dataUrl,
-        explanation:
-          videoExplanations[Math.floor(currentTime)] ||
-          `Screenshot taken at ${formatTime(
-            currentTime
-          )}. This appears to be a key moment in the video.`,
+        explanation: `Screenshot at ${formatTime(currentTime)}`
       };
-
-      setScreenshots([...screenshots, newScreenshot]);
-
-      toast({
-        title: "Screenshot Captured",
-        description: `Screenshot taken at ${formatTime(currentTime)}`,
-      });
+      
+      setScreenshots(prevScreenshots => [...prevScreenshots, newScreenshot]);
+      
+      // Resume playing if needed
+      if (wasPlaying) {
+        video.play();
+      }
+    } catch (error) {
+      console.error("Local video screenshot error:", error);
+      
+      // Resume playing if needed
+      if (wasPlaying) {
+        video.play();
+      }
     }
-  };
+  }
+};
 
   // Toggle miniplayer mode
   const toggleMiniplayer = () => {
@@ -986,6 +1030,8 @@ Unlike traditional programming, where explicit instructions are provided, machin
                       }`}
                     >
                       {youtubeVideoId ? (
+                        <div className="aspect-video bg-black relative" id="youtube-player-container">
+                          <div id="youtube-player" className="w-full h-full"></div>
                         <div className="aspect-video bg-black">
                           <div
                             id="youtube-player"
@@ -993,13 +1039,15 @@ Unlike traditional programming, where explicit instructions are provided, machin
                           ></div>
                         </div>
                       ) : (
-                        <video
-                          ref={videoRef}
-                          src={videoSrc}
-                          className="w-full aspect-video bg-black"
-                          onTimeUpdate={handleTimeUpdate}
-                          onLoadedMetadata={handleLoadedMetadata}
-                        />
+                        <div className="aspect-video bg-black relative">
+                          <video
+                            ref={videoRef}
+                            src={videoSrc}
+                            className="w-full h-full"
+                            onTimeUpdate={handleTimeUpdate}
+                            onLoadedMetadata={handleLoadedMetadata}
+                          />
+                        </div>
                       )}
 
                       {/* Video Controls */}
