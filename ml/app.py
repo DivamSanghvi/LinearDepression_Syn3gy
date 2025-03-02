@@ -130,8 +130,9 @@ def quiz():
 #     except Exception as e:
 #         return jsonify({"error": str(e)}), 500
 
-@app.route('/transcribe_with_timestamp', methods=['POST'])
-def transcribe_with_timestamp():
+
+@app.route('/transcribe_with_timestamps', methods=['POST'])
+def transcribe_with_timestamps():
     try:
         data = request.get_json()
         youtube_url = data.get("youtube_url", "")
@@ -139,10 +140,16 @@ def transcribe_with_timestamp():
         if not youtube_url:
             return jsonify({"error": "No YouTube URL provided"}), 400
 
-        transcript_data = get_transcript_with_timestamps(youtube_url)
-        return jsonify({"transcript_data": transcript_data}), 200
+        transcript_with_timestamps = get_transcript_with_timestamps(youtube_url)
+        return jsonify({"transcript_with_timestamps": transcript_with_timestamps}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+    
+
+    
+    
+
 
 @app.route('/transcribe_text', methods=['POST'])
 def transcribe_text():
@@ -185,6 +192,24 @@ def generate_keywords_route():
 
         keywords = generate_keywords(youtube_url)
         return jsonify({"keywords": keywords}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/all', methods=['POST'])
+def all():
+    try:
+        data = request.get_json()
+        youtube_url = data.get("youtube_url", "")
+
+        if not youtube_url:
+            return jsonify({"error": "No YouTube URL provided"}), 400
+
+        transcript_with_timestamps = get_transcript_with_timestamps(youtube_url)
+        notes = generate_notes_from_yt_in(youtube_url)
+        keywords = generate_keywords(youtube_url)
+
+        return jsonify({"transcript_with_timestamps": transcript_with_timestamps, "notes": notes, "keywords": keywords}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
