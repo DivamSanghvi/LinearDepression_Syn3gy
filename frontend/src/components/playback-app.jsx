@@ -42,6 +42,7 @@ import {
   Camera,
   Link,
   Info,
+  Loader2,
 } from "lucide-react";
 import {
   BackgroundBeams,
@@ -54,6 +55,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import QuizModal from "./quiz-modal";
 import { SearchPage } from "@/app/test3/page";
+import { model, generationConfig, safetySettings } from "@/lib/ai";
 
 export default function PlaybackApp() {
   const [activeTab, setActiveTab] = useState("transcript");
@@ -72,6 +74,10 @@ export default function PlaybackApp() {
   const [timerActive, setTimerActive] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerInterval, setTimerIntervalState] = useState(null);
+
+  const [selectedTimestampObject, setSelectedTimestampObject] = useState();
+  const [selectedLoading, setSelectedLoading] = useState(false);
+  const [selectedTimestampData, setSelectedTimestampData] = useState();
   const [notes, setNotes] = useState([
     "Take notes on key concepts",
     "Remember to review the transcript",
@@ -91,6 +97,7 @@ export default function PlaybackApp() {
   const [showUrlInput, setShowUrlInput] = useState(true);
   const [timestamps, setTimestamps] = useState([]);
   const [keywords, setKeywords] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -444,30 +451,29 @@ Unlike traditional programming, where explicit instructions are provided, machin
     const element = document.createElement("a");
     const file = new Blob([transcript], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = "transcript.md";
+    element.download = "transcript.pdf";
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
   };
 
-  
   const sendMessage = async () => {
     console.log("sending message");
     if (messageInput.trim() === "") return;
-  
+
     // Add user message
     setChatMessages([
       ...chatMessages,
       { sender: "user", message: messageInput },
     ]);
     setIsLoading(true);
-  
+
     try {
       // Send the user's message to the API
-      const response = await axios.post('http://localhost:5001/query', {
+      const response = await axios.post("http://localhost:5001/query", {
         query: messageInput,
       });
-  
+
       // Add the AI response to the chat
       setChatMessages([
         ...chatMessages,
@@ -475,11 +481,14 @@ Unlike traditional programming, where explicit instructions are provided, machin
         { sender: "ai", message: response.data.response },
       ]);
     } catch (error) {
-      console.error('Failed to fetch AI response:', error);
+      console.error("Failed to fetch AI response:", error);
       setChatMessages([
         ...chatMessages,
         { sender: "user", message: messageInput },
-        { sender: "ai", message: "Failed to fetch AI response. Please try again." },
+        {
+          sender: "ai",
+          message: "Failed to fetch AI response. Please try again.",
+        },
       ]);
     } finally {
       setMessageInput("");
@@ -539,6 +548,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
   // Handle YouTube URL submission
   const handleYoutubeUrlSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const videoId = extractYoutubeId(youtubeUrl);
 
     if (videoId) {
@@ -554,15 +564,15 @@ Unlike traditional programming, where explicit instructions are provided, machin
         }),
       });
 
-
       const data = await res.json();
 
       setVideoData(data);
-      setTranscript(data.notes); 
+      setTranscript(data.notes);
       setKeywords(data.keywords.split(",").map((keyword) => keyword.trim()));
       setTimestamps(data.transcript_with_timestamps);
-      console.log(timestamps)
+      console.log(timestamps);
       setVideoSrc(""); // Clear local video if YouTube is selected
+      setLoading(false);
       toast("YouTube Video Loaded", {
         description: "The video has been loaded successfully.",
       });
@@ -571,6 +581,8 @@ Unlike traditional programming, where explicit instructions are provided, machin
         description: "Please enter a valid YouTube video URL.",
       });
     }
+
+    setLoading(false);
   };
 
   console.log(keywords, timestamps);
@@ -581,7 +593,6 @@ Unlike traditional programming, where explicit instructions are provided, machin
   // Take screenshot of the current frame
   const takeScreenshot = () => {
     if (youtubeVideoId && youtubePlayerRef.current) {
-      
       // For YouTube videos, we need to use a different approach
       // since we can't directly access the video element
       const iframe = document.getElementById("youtube-player");
@@ -629,7 +640,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
         setScreenshots([...screenshots, newScreenshot]);
 
         // In the takeScreenshot function
-        toast.success("Screenshot Captured", {
+        toast("Screenshot Captured", {
           description: `Screenshot taken at ${formatTime(currentTime)}`,
         });
       };
@@ -680,6 +691,51 @@ Unlike traditional programming, where explicit instructions are provided, machin
   };
 
   const layoutClasses = getLayoutClasses();
+
+  const fetchDate = async () => {
+    console.log("here");
+
+    const parts = [
+      {
+        text: "You are expert at detecting errors and improving the efficiency of the given code.If there are any errors in the code, keep the first line specifying the error in short and then begin to explain ways to resolve the error. Further irrespective of any error or not give ways to improve the efficiency of code and give the code in an improved format which is precise and most efficient.For the errors, if any focus on the biggest error and then the small ones.Most importantly, return the output in mdx form only",
+      },
+      { text: "hello world" },
+    ];
+    let input;
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts }],
+      generationConfig,
+      safetySettings,
+    });
+
+    setSelectedTimestampData(result);
+  };
+
+  const handleSelectedTimestampClick = (timestamp) => {
+    console.log("clicked", timestamp);
+    setSelectedTimestamp(timestamp);
+
+    const timestampObject = timestamps.find(
+      (timestamp) =>
+        selectedTimestamp >= timestamp.start &&
+        selectedTimestamp <= timestamp.end
+    );
+
+    console.log(selectedTimestamp);
+
+    if (timestampObject !== undefined) {
+      console.log("Selected timestamp belongs to:", timestampObject);
+      setSelectedTimestampObject(timestampObject);
+      fetchDate();
+      setSelectedLoading(true);
+
+      // Perform any additional actions with the found timestampObject
+    } else {
+      console.log(
+        "Selected timestamp does not belong to any timestamp object."
+      );
+    }
+  };
 
   return (
     <div className={`min-h-screen ${darkMode ? "dark" : ""}`}>
@@ -1093,6 +1149,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                             className="text-white"
                             onClick={() => {
                               setSelectedTimestamp(screenshot.time);
+                              handleSelectedTimestampClick(screenshot.time);
                               jumpToTimestamp(screenshot.time);
                             }}
                           >
@@ -1108,28 +1165,34 @@ Unlike traditional programming, where explicit instructions are provided, machin
 
               {/* Selected Timestamp Explanation */}
               {selectedTimestamp !== null && (
-                <div className="mt-6 bg-white dark:bg-slate-900 rounded-xl shadow-md p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-medium flex items-center gap-2">
-                      <Info className="h-4 w-4 text-blue-500" />
-                      Timestamp Analysis: {formatTime(selectedTimestamp)}
-                    </h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedTimestamp(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <p>
-                      {videoExplanations[Math.floor(selectedTimestamp)] ||
-                        `At ${formatTime(
-                          selectedTimestamp
-                        )}, the video discusses important concepts related to this section. This is a key moment in the presentation that highlights core principles.`}
-                    </p>
-                  </div>
+                <div>
+                  {selectedLoading ? (
+                    <div className="mt-6 bg-white dark:bg-slate-900 rounded-xl shadow-md p-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-medium flex items-center gap-2">
+                          <Info className="h-4 w-4 text-blue-500" />
+                          Timestamp Analysis: {formatTime(selectedTimestamp)}
+                        </h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedTimestamp(null)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <p>
+                          {videoExplanations[Math.floor(selectedTimestamp)] ||
+                            `At ${formatTime(
+                              selectedTimestamp
+                            )}, the video discusses important concepts related to this section. This is a key moment in the presentation that highlights core principles.`}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  )}
                 </div>
               )}
 
@@ -1206,326 +1269,336 @@ Unlike traditional programming, where explicit instructions are provided, machin
             </div>
 
             {/* Right Section - Tabs */}
-            <div
-              className={`${layoutClasses.contentSection} transition-all duration-300`}
-            >
-              <div className="bg-white  dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
-                <Tabs
-                  defaultValue="transcript"
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                >
-                  <div className="border-b m-4 dark:border-gray-700">
-                    <TabsList className="w-full  justify-start flex rounded-none bg-transparent border-b dark:border-gray-700">
-                      <TabsTrigger
-                        value="transcript"
-                        className="data-[state=active]:border-b-2 px-8 flex  data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
-                      >
-                        <BookOpen className="w-4 h-4 mr-2" />
-                        Transcript
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="qa"
-                        className="data-[state=active]:border-b-2  flex px-8 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
-                      >
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        Q&A
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="topics"
-                        className="data-[state=active]:border-b-2  flex  mx-16 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
-                      >
-                        <List className="w-4 h-4 mr-2" />
-                        Find Topics
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="discover"
-                        className="data-[state=active]:border-b-2  flex  mx-16 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
-                      >
-                        <List className="w-4 h-4 mr-2" />
-                        Discover
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
 
-                  <div className="h-[500px]">
-                    <TabsContent value="transcript" className="m-0 h-full">
-                      <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
-                        <h2 className="font-semibold">Lecture Transcript</h2>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={downloadTranscript}
-                          className="flex items-center gap-1 border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-900/30"
+            {!loading ? (
+              <div
+                className={`${layoutClasses.contentSection} transition-all duration-300`}
+              >
+                <div className="bg-white  dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
+                  <Tabs
+                    defaultValue="transcript"
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                  >
+                    <div className="border-b m-4 dark:border-gray-700">
+                      <TabsList className="w-full  justify-start flex rounded-none bg-transparent border-b dark:border-gray-700">
+                        <TabsTrigger
+                          value="transcript"
+                          className="data-[state=active]:border-b-2 px-8 flex  data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
                         >
-                          <Download className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                          Download PDF
-                        </Button>
-                      </div>
-                      <ScrollArea className="h-[440px] p-4">
-                        <div className="prose dark:prose-invert max-w-none">
-                          {transcript?.split("\n").map((line, index) => {
-                            if (line.startsWith("# ")) {
-                              return (
-                                <h1
-                                  key={index}
-                                  className="text-2xl font-bold text-purple-800 dark:text-purple-300"
-                                >
-                                  {line.replace("# ", "")}
-                                </h1>
-                              );
-                            } else if (line.startsWith("## ")) {
-                              return (
-                                <h2
-                                  key={index}
-                                  className="text-xl font-semibold text-purple-700 dark:text-purple-400"
-                                >
-                                  {line.replace("## ", "")}
-                                </h2>
-                              );
-                            } else if (line.startsWith("### ")) {
-                              return (
-                                <h3
-                                  key={index}
-                                  className="text-lg font-medium text-purple-600 dark:text-purple-500"
-                                >
-                                  {line.replace("### ", "")}
-                                </h3>
-                              );
-                            } else if (line.startsWith("- ")) {
-                              return (
-                                <ul
-                                  key={index}
-                                  className="list-disc list-inside"
-                                >
-                                  <li
-                                    dangerouslySetInnerHTML={{
-                                      __html: line
-                                        .replace("- ", "")
-                                        .replace(
-                                          /\*\*(.*?)\*\*/g,
-                                          "<strong>$1</strong>"
-                                        ),
-                                    }}
-                                  />
-                                </ul>
-                              );
-                            } else if (line.match(/^\d+\. /)) {
-                              return (
-                                <ol
-                                  key={index}
-                                  className="list-decimal list-inside"
-                                >
-                                  <li
-                                    dangerouslySetInnerHTML={{
-                                      __html: line
-                                        .replace(/^\d+\. /, "")
-                                        .replace(
-                                          /\*\*(.*?)\*\*/g,
-                                          "<strong>$1</strong>"
-                                        ),
-                                    }}
-                                  />
-                                </ol>
-                              );
-                            } else if (
-                              line.startsWith("**") &&
-                              line.endsWith("**")
-                            ) {
-                              return (
-                                <p key={index} className="font-bold">
-                                  {line.replace(/\*\*/g, "")}
-                                </p>
-                              );
-                            } else if (line.trim() === "") {
-                              return <br key={index} />;
-                            } else {
-                              return (
-                                <p
-                                  key={index}
-                                  dangerouslySetInnerHTML={{
-                                    __html: line.replace(
-                                      /\*\*(.*?)\*\*/g,
-                                      "<strong>$1</strong>"
-                                    ),
-                                  }}
-                                />
-                              );
-                            }
-                          })}
+                          <BookOpen className="w-4 h-4 mr-2" />
+                          Transcript
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="qa"
+                          className="data-[state=active]:border-b-2  flex px-8 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Q&A
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="topics"
+                          className="data-[state=active]:border-b-2  flex  mx-16 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
+                        >
+                          <List className="w-4 h-4 mr-2" />
+                          Find Topics
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="discover"
+                          className="data-[state=active]:border-b-2  flex  mx-16 data-[state=active]:border-purple-500 rounded-none data-[state=active]:shadow-none"
+                        >
+                          <List className="w-4 h-4 mr-2" />
+                          Discover
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+
+                    <div className="h-[500px]">
+                      <TabsContent value="transcript" className="m-0 h-full">
+                        <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
+                          <h2 className="font-semibold">Lecture Transcript</h2>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={downloadTranscript}
+                            className="flex items-center gap-1 border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-900/30"
+                          >
+                            <Download className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                            Download PDF
+                          </Button>
                         </div>
-                      </ScrollArea>
-                    </TabsContent>
-
-                    <TabsContent value="qa" className="m-0 h-full flex flex-col">
-  {/* Header */}
-  <div className="p-4 border-b dark:border-gray-700">
-    <h2 className="font-semibold">
-      Ask Questions About the Lecture
-    </h2>
-  </div>
-
-  {/* Messages Area */}
-  <ScrollArea className="flex-1 h-[440px] p-4">
-    <div className="space-y-4">
-      {chatMessages.map((msg, index) => (
-        <div
-          key={index}
-          className={`flex ${
-            msg.sender === "user"
-              ? "justify-end"
-              : "justify-start"
-          }`}
-        >
-          <div
-            className={`max-w-[80%] p-3 rounded-lg text-sm ${
-              msg.sender === "user"
-                ? "bg-purple-600 text-white"
-                : "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100"
-            }`}
-          >
-            {msg.message}
-          </div>
-        </div>
-      ))}
-
-      {/* AI is Thinking Indicator */}
-      {isLoading && (
-        <div className="flex justify-start">
-          <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 dark:bg-slate-800 flex items-center gap-2">
-            <RotateCcw className="h-4 w-4 animate-spin" />
-            <span>AI is thinking...</span>
-          </div>
-        </div>
-      )}
-    </div>
-  </ScrollArea>
-
-  {/* Input Box */}
-  <div className="p-4 border-t dark:border-gray-700">
-    <div className="flex gap-2">
-      <Input
-        placeholder="Ask a question about the lecture..."
-        value={messageInput}
-        onChange={(e) => setMessageInput(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-          }
-        }}
-        className="border-purple-200 focus-visible:ring-purple-500 dark:border-purple-800"
-      />
-      <Button
-        onClick={sendMessage}
-        disabled={isLoading}
-        className="bg-purple-600 hover:bg-purple-700"
-      >
-        <Send className="h-4 w-4" />
-      </Button>
-    </div>
-  </div>
-</TabsContent>
-
-                    <TabsContent value="topics" className="m-0 h-full">
-                      {/* Header */}
-                      <div className="p-4 border-b dark:border-gray-700">
-                        <h2 className="font-semibold">
-                          Key Topics & Timestamps
-                        </h2>
-                      </div>
-
-                      {/* Topics List */}
-                      <ScrollArea className="h-[440px]">
-                        <div className="divide-y w-full dark:divide-gray-700">
-                          {timestamps.map((topic, index) => (
-                            <HoverBorderGradient
-                              key={index}
-                              className="p-4 bg-white dark:bg-slate-900 cursor-pointer transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-800"
-                              onClick={() => jumpToTimestamp(topic.start)}
-                              containerClassName="rounded-none"
-                              as="div"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center w-full gap-3">
-                                  <Clock className="h-5 w-5 text-purple-500" />
-                                  <span className="text-black dark:text-gray-100 truncate text-ellipsis w-96">
-                                    {topic.text}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Badge
-                                    variant="outline"
-                                    className="border-purple-200 text-black dark:text-gray-100 dark:border-purple-800"
+                        <ScrollArea className="h-[440px] p-4">
+                          <div className="prose dark:prose-invert max-w-none">
+                            {transcript.split("\n").map((line, index) => {
+                              if (line.startsWith("# ")) {
+                                return (
+                                  <h1
+                                    key={index}
+                                    className="text-2xl font-bold text-purple-800 dark:text-purple-300"
                                   >
-                                    {formatTime(topic.start)}
-                                  </Badge>
-                                  <ChevronRight className="h-4 w-4 text-purple-500" />
+                                    {line.replace("# ", "")}
+                                  </h1>
+                                );
+                              } else if (line.startsWith("## ")) {
+                                return (
+                                  <h2
+                                    key={index}
+                                    className="text-xl font-semibold text-purple-700 dark:text-purple-400"
+                                  >
+                                    {line.replace("## ", "")}
+                                  </h2>
+                                );
+                              } else if (line.startsWith("### ")) {
+                                return (
+                                  <h3
+                                    key={index}
+                                    className="text-lg font-medium text-purple-600 dark:text-purple-500"
+                                  >
+                                    {line.replace("### ", "")}
+                                  </h3>
+                                );
+                              } else if (line.startsWith("- ")) {
+                                return (
+                                  <ul
+                                    key={index}
+                                    className="list-disc list-inside"
+                                  >
+                                    <li
+                                      dangerouslySetInnerHTML={{
+                                        __html: line
+                                          .replace("- ", "")
+                                          .replace(
+                                            /\*\*(.*?)\*\*/g,
+                                            "<strong>$1</strong>"
+                                          ),
+                                      }}
+                                    />
+                                  </ul>
+                                );
+                              } else if (line.match(/^\d+\. /)) {
+                                return (
+                                  <ol
+                                    key={index}
+                                    className="list-decimal list-inside"
+                                  >
+                                    <li
+                                      dangerouslySetInnerHTML={{
+                                        __html: line
+                                          .replace(/^\d+\. /, "")
+                                          .replace(
+                                            /\*\*(.*?)\*\*/g,
+                                            "<strong>$1</strong>"
+                                          ),
+                                      }}
+                                    />
+                                  </ol>
+                                );
+                              } else if (
+                                line.startsWith("**") &&
+                                line.endsWith("**")
+                              ) {
+                                return (
+                                  <p key={index} className="font-bold">
+                                    {line.replace(/\*\*/g, "")}
+                                  </p>
+                                );
+                              } else if (line.trim() === "") {
+                                return <br key={index} />;
+                              } else {
+                                return (
+                                  <p
+                                    key={index}
+                                    dangerouslySetInnerHTML={{
+                                      __html: line.replace(
+                                        /\*\*(.*?)\*\*/g,
+                                        "<strong>$1</strong>"
+                                      ),
+                                    }}
+                                  />
+                                );
+                              }
+                            })}
+                          </div>
+                        </ScrollArea>
+                      </TabsContent>
+
+                      <TabsContent
+                        value="qa"
+                        className="m-0 h-full flex flex-col"
+                      >
+                        {/* Header */}
+                        <div className="p-4 border-b dark:border-gray-700">
+                          <h2 className="font-semibold">
+                            Ask Questions About the Lecture
+                          </h2>
+                        </div>
+
+                        {/* Messages Area */}
+                        <ScrollArea className="flex-1 h-[440px] p-4">
+                          <div className="space-y-4">
+                            {chatMessages.map((msg, index) => (
+                              <div
+                                key={index}
+                                className={`flex ${
+                                  msg.sender === "user"
+                                    ? "justify-end"
+                                    : "justify-start"
+                                }`}
+                              >
+                                <div
+                                  className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                                    msg.sender === "user"
+                                      ? "bg-purple-600 text-white"
+                                      : "bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-gray-100"
+                                  }`}
+                                >
+                                  {msg.message}
                                 </div>
                               </div>
-                            </HoverBorderGradient>
-                          ))}
+                            ))}
+
+                            {/* AI is Thinking Indicator */}
+                            {isLoading && (
+                              <div className="flex justify-start">
+                                <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 dark:bg-slate-800 flex items-center gap-2">
+                                  <RotateCcw className="h-4 w-4 animate-spin" />
+                                  <span>AI is thinking...</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </ScrollArea>
+
+                        {/* Input Box */}
+                        <div className="p-4 border-t dark:border-gray-700">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Ask a question about the lecture..."
+                              value={messageInput}
+                              onChange={(e) => setMessageInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  sendMessage();
+                                }
+                              }}
+                              className="border-purple-200 focus-visible:ring-purple-500 dark:border-purple-800"
+                            />
+                            <Button
+                              onClick={sendMessage}
+                              disabled={isLoading}
+                              className="bg-purple-600 hover:bg-purple-700"
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </ScrollArea>
-                    </TabsContent>
+                      </TabsContent>
 
-                    <TabsContent value="discover" className="m-0 h-full">
-                      <div className="p-4 border-b dark:border-gray-700">
-                        <h2 className="font-semibold">
-                          Discover based on the lecture
-                        </h2>
-                      </div>
+                      <TabsContent value="topics" className="m-0 h-full">
+                        {/* Header */}
+                        <div className="p-4 border-b dark:border-gray-700">
+                          <h2 className="font-semibold">
+                            Key Topics & Timestamps
+                          </h2>
+                        </div>
 
-                      <ScrollArea className="h-[440px] p-4">
-                        <SearchPage query={keywords.join(",")} />
-                      </ScrollArea>
-                    </TabsContent>
-                  </div>
-                </Tabs>
+                        {/* Topics List */}
+                        <ScrollArea className="h-[440px]">
+                          <div className="divide-y w-full dark:divide-gray-700">
+                            {timestamps.map((topic, index) => (
+                              <HoverBorderGradient
+                                key={index}
+                                className="p-4 bg-white dark:bg-slate-900 cursor-pointer transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                onClick={() => jumpToTimestamp(topic.start)}
+                                containerClassName="rounded-none"
+                                as="div"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center w-full gap-3">
+                                    <Clock className="h-5 w-5 text-purple-500" />
+                                    <span className="text-black dark:text-gray-100 truncate text-ellipsis w-96">
+                                      {topic.text}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant="outline"
+                                      className="border-purple-200 text-black dark:text-gray-100 dark:border-purple-800"
+                                    >
+                                      {formatTime(topic.start)}
+                                    </Badge>
+                                    <ChevronRight className="h-4 w-4 text-purple-500" />
+                                  </div>
+                                </div>
+                              </HoverBorderGradient>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </TabsContent>
+
+                      <TabsContent value="discover" className="m-0 h-full">
+                        <div className="p-4 border-b dark:border-gray-700">
+                          <h2 className="font-semibold">
+                            Discover based on the lecture
+                          </h2>
+                        </div>
+
+                        <ScrollArea className="h-[440px] p-4">
+                          <SearchPage query={keywords.join(",")} />
+                        </ScrollArea>
+                      </TabsContent>
+                    </div>
+                  </Tabs>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card className="overflow-hidden p-8">
+                    <BackgroundGradient className="rounded-xl">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-md bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                            <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium">
+                              Deep Learning Fundamentals
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              Neural networks, backpropagation, and more
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </BackgroundGradient>
+                  </Card>
+
+                  <Card className="overflow-hidden p-8">
+                    <BackgroundGradient className="rounded-xl">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-md bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                            <BookOpen className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium">
+                              Natural Language Processing
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              Text analysis, sentiment, and transformers
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </BackgroundGradient>
+                  </Card>
+                </div>
               </div>
-
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="overflow-hidden p-8">
-                  <BackgroundGradient className="rounded-xl">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-md bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                          <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">
-                            Deep Learning Fundamentals
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Neural networks, backpropagation, and more
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </BackgroundGradient>
-                </Card>
-
-                <Card className="overflow-hidden p-8">
-                  <BackgroundGradient className="rounded-xl">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-md bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                          <BookOpen className="h-6 w-6 text-purple-600 dark:text-purple-300" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">
-                            Natural Language Processing
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Text analysis, sentiment, and transformers
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </BackgroundGradient>
-                </Card>
+            ) : (
+              <div className="flex-1 -mt-28 flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin" />
               </div>
-            </div>
+            )}
           </div>
 
           {/* Learning Analytics Section */}
