@@ -1,5 +1,36 @@
-from pytubefix import YouTube # This is solution
+from pinecone import Pinecone
 
-yt = YouTube("https://www.youtube.com/watch?v=vLS-zRCHo-Y&list=PLAXnLdrLnQpRcveZTtD644gM9uzYqJCwr&index=56")
-stream = yt.streams.filter(progressive=True, file_extension='mp4').first()
-stream.download()
+pc = Pinecone("pcsk_52Dzds_A9UACW6JuvwVDbSXA7PSDPt3dkvwypgWJUbdkndZEwvRrSM6McVBE1PENCzBmn2")
+
+# Embed data
+data = [
+    {"id": "vec1", "text": "Apple is a popular fruit known for its sweetness and crisp texture."},
+    {"id": "vec2", "text": "The tech company Apple is known for its innovative products like the iPhone."},
+    {"id": "vec3", "text": "Many people enjoy eating apples as a healthy snack."},
+    {"id": "vec4", "text": "Apple Inc. has revolutionized the tech industry with its sleek designs and user-friendly interfaces."},
+    {"id": "vec5", "text": "An apple a day keeps the doctor away, as the saying goes."},
+]
+
+embeddings = pc.inference.embed(
+    model="llama-text-embed-v2",
+    inputs=[d['text'] for d in data],
+    parameters={
+        "input_type": "passage"
+    }
+)
+
+vectors = []
+for d, e in zip(data, embeddings):
+    vectors.append({
+        "id": d['id'],
+        "values": e['values'],
+        "metadata": {'text': d['text']}
+    })
+
+
+index=pc.Index('synergy');
+print(index);
+index.upsert(
+    vectors=vectors,
+    namespace="ns1"
+)
