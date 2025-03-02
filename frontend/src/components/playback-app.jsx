@@ -9,9 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { StatsWidget } from "./ui/statswidget";
-import { StudyGroup } from "./ui/studygroup";
-import { FlashCard } from "./ui/flashcard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -1436,19 +1433,19 @@ Unlike traditional programming, where explicit instructions are provided, machin
                       {/* Topics List */}
                       <ScrollArea className="h-[440px]">
                         <div className="divide-y w-full dark:divide-gray-700">
-                          {topics.map((topic, index) => (
+                          {timestamps.map((topic, index) => (
                             <HoverBorderGradient
                               key={index}
                               className="p-4 bg-white dark:bg-slate-900 cursor-pointer transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-800"
-                              onClick={() => jumpToTimestamp(topic.time)}
+                              onClick={() => jumpToTimestamp(topic.start)}
                               containerClassName="rounded-none"
                               as="div"
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center w-full gap-3">
                                   <Clock className="h-5 w-5 text-purple-500" />
-                                  <span className="text-black dark:text-gray-100">
-                                    {topic.title}
+                                  <span className="text-black dark:text-gray-100 truncate text-ellipsis w-96">
+                                    {topic.text}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -1456,7 +1453,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                     variant="outline"
                                     className="border-purple-200 text-black dark:text-gray-100 dark:border-purple-800"
                                   >
-                                    {formatTime(topic.time)}
+                                    {formatTime(topic.start)}
                                   </Badge>
                                   <ChevronRight className="h-4 w-4 text-purple-500" />
                                 </div>
@@ -1466,24 +1463,22 @@ Unlike traditional programming, where explicit instructions are provided, machin
                         </div>
                       </ScrollArea>
                     </TabsContent>
+
                     <TabsContent value="discover" className="m-0 h-full">
-                      {/* Header */}
                       <div className="p-4 border-b dark:border-gray-700">
                         <h2 className="font-semibold">
                           Discover based on the lecture
                         </h2>
                       </div>
 
-                
                       <ScrollArea className="h-[440px] p-4">
-                      <SearchPage query="machine learning" />
+                        <SearchPage query={keywords.join(",")} />
                       </ScrollArea>
                     </TabsContent>
                   </div>
                 </Tabs>
               </div>
 
-              {/* Related Courses */}
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="overflow-hidden p-8">
                   <BackgroundGradient className="rounded-xl">
@@ -1528,65 +1523,40 @@ Unlike traditional programming, where explicit instructions are provided, machin
             </div>
           </div>
 
-           {/* Additional Widgets Section */}
-           <div className="mt-16 ">
-            
-            {/* Stats Widget */}
-            <div className="my-16 ">
-           <StatsWidget/>
-            </div>
-            
-            {/* Calendar Widget */}
-            <div className="my-16">
-              <div className="max-w-5xl mx-auto bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
-                <div className="p-6">
-                  <h2 className="text-xl font-bold mb-6">Upcoming Learning Schedule</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
-                    {Array.from({ length: 7 }).map((_, i) => {
-                      const isToday = i === 2
-                      const hasEvent = [1, 3, 5].includes(i)
-                      return (
-                        <div 
-                          key={i} 
-                          className={`p-4 rounded-lg border ${
-                            isToday 
-                              ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' 
-                              : 'border-gray-200 dark:border-gray-700'
-                          }`}
-                        >
-                          <div className="text-center">
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
-                            </div>
-                            <div className={`text-lg font-semibold ${isToday ? 'text-purple-600 dark:text-purple-400' : ''}`}>
-                              {i + 10}
-                            </div>
-                          </div>
-                          {hasEvent && (
-                            <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs">
-                              {i === 1 && 'Data Science - 2PM'}
-                              {i === 3 && 'ML Workshop - 10AM'}
-                              {i === 5 && 'AI Ethics - 4PM'}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
+          {/* Learning Analytics Section */}
+          <div className="my-16 ">
+            <div className="max-w-5xl mx-auto bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 w-full">
+                <h2 className="text-xl font-bold mb-6 text-center">
+                  Learning Analytics
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex w-fullflex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                      87%
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
+                      Average Completion Rate
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                      12.5
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
+                      Hours Watched This Month
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                      24
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
+                      Courses In Progress
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Study Group Widget */}
-            <div className="my-16">
-            <StudyGroup/>
-            
-            </div>
-            
-            {/* Flashcards Widget */}
-            <div className="my-16 relative">
-    
-            <FlashCard />
             </div>
           </div>
         </main>

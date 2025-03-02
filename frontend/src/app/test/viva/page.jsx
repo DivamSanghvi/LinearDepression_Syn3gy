@@ -6,9 +6,20 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { Input } from "@/components/ui/input";
 import { Mic, MicOff, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function VoiceChat() {
   const [isRecording, setIsRecording] = useState(false);
+  const searchParams = useSearchParams();
+  const params = searchParams.get("keywords");
   const [results, setResults] = useState([]);
   const [interimResult, setInterimResult] = useState("");
   const [finalResult, setFinalResult] = useState("");
@@ -20,11 +31,23 @@ export default function VoiceChat() {
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [isInputDisabled, setIsInputDisabled] = useState(false);
   const [dotLottie, setDotLottie] = useState(null);
-
+  const [keywords, setKeywords] = useState("");
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const chatContainerRef = useRef(null);
   const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (params) {
+      const decodedKeywords = decodeURIComponent(params);
+      console.log("Decoded Keywords:", decodedKeywords);
+      const keywordsArray = decodedKeywords.split(",");
+      setKeywords(keywordsArray);
+    }
+  }, [params]);
+  console.log();
+
+  console.log(topic);
 
   useEffect(() => {
     if (!("webkitSpeechRecognition" in window)) {
@@ -251,6 +274,8 @@ export default function VoiceChat() {
 
   if (error) return <p className="text-red-500">{error}</p>;
 
+  if (!keywords) return <p>Loading...</p>;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-purple-100 to-purple-300 flex items-center justify-center p-4">
       <div className="w-full max-w-7xl flex items-start">
@@ -319,14 +344,25 @@ export default function VoiceChat() {
             </div>
 
             <div className="flex gap-2">
-              <Input
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
+              <Select
+                onValueChange={(value) => setTopic(value)}
                 placeholder="Enter the topic for the viva..."
                 className="flex-grow rounded-full bg-white shadow-md border-purple-200 focus:border-purple-300 focus:ring-purple-300"
                 disabled={isInputDisabled}
-              />
-
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Select the topic" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectGroup>
+                    {keywords?.map((keyword) => (
+                      <SelectItem key={keyword} value={keyword}>
+                        {keyword}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
               <Button
                 onClick={handleGenerate}
                 disabled={isInputDisabled}

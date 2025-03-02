@@ -3,7 +3,7 @@ from flask_cors import CORS
 from viva_tool_final import generate_viva_questions_and_answer, generate_feedback
 from dotenv import load_dotenv
 from quiz import generate_quiz  # Import the generate_quiz function
-from video_extraction import get_transcription  # Import the get_transcription function
+# from video_extraction import get_transcription  # Import the get_transcription function
 from yt_notes import generate_notes_from_yt_in  # Import the generate_notes_from_yt_in function
 from transcripts_from_yt_final import get_transcript_with_timestamps, get_transcript_text  # Import the functions
 from keyword_identification_from_video import generate_keywords  # Import the generate_keywords function

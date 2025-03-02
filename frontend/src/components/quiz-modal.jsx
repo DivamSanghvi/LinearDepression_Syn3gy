@@ -11,7 +11,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import Link from "next/link";
 
-export default function QuizModal() {
+export default function QuizModal({ keywords }) {
   const [selectedTopic, setSelectedTopic] = useState("");
 
   const topics = ["Math", "Science", "History", "Geography"];
@@ -33,8 +33,8 @@ export default function QuizModal() {
           <SelectTrigger className="w-full mt-4">
             {selectedTopic ? selectedTopic : "Select a topic"}
           </SelectTrigger>
-          <SelectContent>
-            {topics.map((topic) => (
+          <SelectContent className="bg-white">
+            {keywords?.map((topic) => (
               <SelectItem key={topic} value={topic}>
                 {topic}
               </SelectItem>
@@ -42,7 +42,11 @@ export default function QuizModal() {
           </SelectContent>
         </Select>
 
-        <Link href={`/test/quiz/${selectedTopic}`} className="w-full">
+        <Link
+          href={`/test/quiz/${selectedTopic}`}
+          className="w-full"
+          target="_blank"
+        >
           <Button className="bg-[#8200DA] w-full hover:bg-[#8200DA] hover:opacity-80">
             Take Quiz
           </Button>
