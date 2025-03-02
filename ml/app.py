@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from viva_tool_final import generate_viva_questions_and_answer, generate_feedback
-from yt_notes import generate_notes_from_yt_in  # Import the function from yt_notes.py
 from dotenv import load_dotenv
 from quiz import generate_quiz  # Import the generate_quiz function
+from video_extraction import get_transcription  # Import the get_transcription function
+from yt_notes import generate_notes_from_yt_in  # Import the generate_notes_from_yt_in function
+from transcripts_from_yt_final import get_transcript_with_timestamps, get_transcript_text  # Import the functions
+from keyword_identification_from_video import generate_keywords  # Import the generate_keywords function
 import os
 import warnings
 import tempfile
@@ -29,7 +32,6 @@ def query(filename):
 @app.route('/')
 def home():
     return "Welcome to the Linear Depression Prediction API!"
-
 
 @app.route('/viva', methods=['POST']) #Route for viva_tool_final.py
 def viva():
@@ -88,21 +90,7 @@ def viva_feedback():
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
-    
-@app.route('/yt_notes', methods=['POST']) #Route for yt_notes.py
-def yt_notes():
-    try:
-        data = request.get_json()
-        youtube_url = data.get("youtube_url", "")
 
-        if not youtube_url:
-            return jsonify({"error": "No YouTube URL provided"}), 400
-
-        notes = generate_notes_from_yt_in(youtube_url)
-        return jsonify({"notes": notes}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
 
 @app.route('/quiz', methods=['POST']) # New route for generating quiz questions
 def quiz():
@@ -119,6 +107,87 @@ def quiz():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+# @app.route('/transcribe', methods=['POST'])
+# def transcribe():
+#     try:
+#         data = request.get_json()
+#         input_file = data.get("input_file", "")
+
+#         if not input_file:
+#             return jsonify({"error": "No input path or URL provided"}), 400
+
+#         transcript = get_transcription(input_file)
+        
+#         # Clear the transcripts list before adding the new transcript
+#         globals.transcripts.clear()
+#         globals.transcripts.append(transcript)
+        
+#         # Write the transcript to globals.py
+#         with open('globals.py', 'w') as f:
+#             f.write(f"transcripts = {globals.transcripts}\n") #can comment later
+        
+#         return jsonify({"transcript": transcript}), 200
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+@app.route('/transcribe_with_timestamp', methods=['POST'])
+def transcribe_with_timestamp():
+    try:
+        data = request.get_json()
+        youtube_url = data.get("youtube_url", "")
+
+        if not youtube_url:
+            return jsonify({"error": "No YouTube URL provided"}), 400
+
+        transcript_data = get_transcript_with_timestamps(youtube_url)
+        return jsonify({"transcript_data": transcript_data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/transcribe_text', methods=['POST'])
+def transcribe_text():
+    try:
+        data = request.get_json()
+        youtube_url = data.get("youtube_url", "")
+
+        if not youtube_url:
+            return jsonify({"error": "No YouTube URL provided"}), 400
+
+        transcript_text = get_transcript_text(youtube_url)
+        return jsonify({"transcript_text": transcript_text}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    
+@app.route('/yt_notes', methods=['POST']) #Route for yt_notes.py
+def yt_notes():
+    try:
+        data = request.get_json()
+        youtube_url = data.get("youtube_url", "")
+
+        if not youtube_url:
+            return jsonify({"error": "No YouTube URL provided"}), 400
+
+        notes = generate_notes_from_yt_in(youtube_url)
+        return jsonify({"notes": notes}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/generate_keywords', methods=['POST']) # New route for generating keywords
+def generate_keywords_route():
+    try:
+        data = request.get_json()
+        youtube_url = data.get("youtube_url", "")
+
+        if not youtube_url:
+            return jsonify({"error": "No YouTube URL provided"}), 400
+
+        keywords = generate_keywords(youtube_url)
+        return jsonify({"keywords": keywords}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=False, port=5001)

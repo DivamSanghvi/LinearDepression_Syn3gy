@@ -6,7 +6,7 @@ langchainhub
 langchain-groq
 langgraph
 youtube_search
-youtube_transcript_api
+youtube-transcript-api
 pandas
 numpy
 flask
@@ -14,4 +14,5 @@ flask-cors
 lxml
 imblearn
 requests
-
+audio-extract
+pytube

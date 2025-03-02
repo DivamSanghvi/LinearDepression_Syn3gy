@@ -722,10 +722,7 @@ toast.success("Screenshot Captured", {
                   <Share className="h-4 w-4" />
                   Share
                 </Button>
-                <Button className="bg-purple-600 hover:bg-purple-700 gap-1">
-                  <Award className="h-4 w-4" />
-                  Take Quiz
-                </Button>
+                <QuizModal />
               </div>
             </div>
           </div>
