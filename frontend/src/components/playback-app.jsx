@@ -1,19 +1,17 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { logout } from "@/utils/auth";
-import { useState, useRef, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+"use client"
+import { useRouter } from "next/navigation"
+import { logout } from "@/utils/auth"
+import { useState, useRef, useEffect } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Slider } from "@/components/ui/slider"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import {
   Play,
   Pause,
@@ -29,124 +27,220 @@ import {
   List,
   ChevronRight,
   RotateCcw,
-  ChevronLeft,
   ChevronDown,
   Menu,
   Bell,
   Search,
-  User,
-  LogOut,
   Bookmark,
-  Calendar,
   Clock3,
-  Settings,
-  Lightbulb,
   Award,
-  Star,
   PanelLeftClose,
   PanelRightClose,
   Maximize2,
   Minimize2,
-} from "lucide-react";
+  Camera,
+  Link,
+  Info,
+} from "lucide-react"
 import {
   BackgroundBeams,
   BackgroundGradient,
-  BentoGrid,
-  BentoGridItem,
   TextGenerateEffect,
-  StickyScroll,
   SparklesCore,
-  AnimatedTooltip,
-  Meteors,
-  InfiniteMovingCards,
   HoverBorderGradient,
-  LampContainer,
-  Lamp,
-  Spotlight,
-  TracingBeam,
-} from "@/components/ui/acaternity";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+} from "@/components/ui/acaternity"
+import { toast } from "@/components/ui/use-toast"
+import { Toaster } from "@/components/ui/toaster"
 
 export default function PlaybackApp() {
-  const [activeTab, setActiveTab] = useState("transcript");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.7);
-  const [isMuted, setIsMuted] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [playbackRate, setPlaybackRate] = useState(1);
-  const [videoSrc, setVideoSrc] = useState("");
-  const [isDragging, setIsDragging] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
-  const [messageInput, setMessageInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [layoutMode, setLayoutMode] = useState("balanced");
-  const [timerActive, setTimerActive] = useState(false);
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [timerInterval, setTimerIntervalState] = useState(null);
-  const [notes, setNotes] = useState([
-    "Take notes on key concepts",
-    "Remember to review the transcript",
-  ]);
-  const [newNote, setNewNote] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState("transcript")
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [volume, setVolume] = useState(0.7)
+  const [isMuted, setIsMuted] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [playbackRate, setPlaybackRate] = useState(1)
+  const [videoSrc, setVideoSrc] = useState("")
+  const [isDragging, setIsDragging] = useState(false)
+  const [chatMessages, setChatMessages] = useState([])
+  const [messageInput, setMessageInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [layoutMode, setLayoutMode] = useState("balanced")
+  const [timerActive, setTimerActive] = useState(false)
+  const [timerSeconds, setTimerSeconds] = useState(0)
+  const [timerInterval, setTimerIntervalState] = useState(null)
+  const [notes, setNotes] = useState(["Take notes on key concepts", "Remember to review the transcript"])
+  const [newNote, setNewNote] = useState("")
+  const [darkMode, setDarkMode] = useState(false)
 
-  const videoRef = useRef(null);
-  const fileInputRef = useRef(null);
+  // New state for YouTube functionality
+  const [youtubeUrl, setYoutubeUrl] = useState("")
+  const [youtubeVideoId, setYoutubeVideoId] = useState("")
+  const [screenshots, setScreenshots] = useState([])
+  const [videoExplanations, setVideoExplanations] = useState({})
+  const [selectedTimestamp, setSelectedTimestamp] = useState(null)
+  const [isMiniplayer, setIsMiniplayer] = useState(false)
+  const [showUrlInput, setShowUrlInput] = useState(true)
 
-  const [user, setUser] = useState({ name: "Guest" });
-  const router = useRouter();
+  const videoRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const youtubePlayerRef = useRef(null)
+  const canvasRef = useRef(null)
+
+  const [user, setUser] = useState({ name: "Guest" })
+  const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log(token);
+    const token = localStorage.getItem("token")
+    console.log(token)
     if (!token) {
-      router.push("/");
+      router.push("/")
     } else {
       // Decode JWT or fetch user details from backend
-      const decodedUser = JSON.parse(atob(token.split(".")[1])); // Decoding JWT
-      console.log(decodedUser);
-      setUser(decodedUser);
+      const decodedUser = JSON.parse(atob(token.split(".")[1])) // Decoding JWT
+      console.log(decodedUser)
+      setUser(decodedUser)
     }
-  }, []);
+  }, [router])
 
   const handleLogout = () => {
-    logout();
-    router.push("/");
-  };
+    logout()
+    router.push("/")
+  }
 
   useEffect(() => {
     if (darkMode) {
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.add("dark")
     } else {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("dark")
     }
-  }, [darkMode]);
+  }, [darkMode])
 
   useEffect(() => {
     if (timerActive) {
       const interval = setInterval(() => {
-        setTimerSeconds((prev) => prev + 1);
-      }, 1000);
-      setTimerIntervalState(interval);
-      return () => clearInterval(interval);
+        setTimerSeconds((prev) => prev + 1)
+      }, 1000)
+      setTimerIntervalState(interval)
+      return () => clearInterval(interval)
     } else if (timerInterval) {
-      clearInterval(timerInterval);
-      setTimerIntervalState(null);
+      clearInterval(timerInterval)
+      setTimerIntervalState(null)
     }
-  }, [timerActive, timerInterval]);
+  }, [timerActive, timerInterval])
+
+  // Load YouTube IFrame API
+  useEffect(() => {
+    // Load the YouTube IFrame API script
+    const tag = document.createElement("script")
+    tag.src = "https://www.youtube.com/iframe_api"
+    const firstScriptTag = document.getElementsByTagName("script")[0]
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+
+    // Define the onYouTubeIframeAPIReady function
+    window.onYouTubeIframeAPIReady = () => {
+      if (youtubeVideoId) {
+        initYouTubePlayer()
+      }
+    }
+
+    return () => {
+      // Clean up
+      window.onYouTubeIframeAPIReady = null
+    }
+  }, [youtubeVideoId])
+
+  // Initialize YouTube player when video ID changes
+  useEffect(() => {
+    if (youtubeVideoId && window.YT && window.YT.Player) {
+      initYouTubePlayer()
+    }
+  }, [youtubeVideoId])
+
+  const initYouTubePlayer = () => {
+    if (youtubePlayerRef.current) {
+      // Destroy existing player if any
+      youtubePlayerRef.current = null
+    }
+
+    youtubePlayerRef.current = new window.YT.Player("youtube-player", {
+      videoId: youtubeVideoId,
+      playerVars: {
+        autoplay: 0,
+        controls: 1,
+        rel: 0,
+        fs: 1,
+        modestbranding: 1,
+      },
+      events: {
+        onReady: onPlayerReady,
+        onStateChange: onPlayerStateChange,
+      },
+    })
+  }
+
+  const onPlayerReady = (event) => {
+    // Player is ready
+    setDuration(event.target.getDuration())
+    setShowUrlInput(false)
+
+    // Generate timestamps based on video duration
+    generateTimestamps(event.target.getDuration())
+  }
+
+  const onPlayerStateChange = (event) => {
+    // Update playing state
+    setIsPlaying(event.data === window.YT.PlayerState.PLAYING)
+
+    // Update current time
+    if (youtubePlayerRef.current) {
+      const timeUpdateInterval = setInterval(() => {
+        if (youtubePlayerRef.current) {
+          setCurrentTime(youtubePlayerRef.current.getCurrentTime())
+        } else {
+          clearInterval(timeUpdateInterval)
+        }
+      }, 1000)
+
+      return () => clearInterval(timeUpdateInterval)
+    }
+  }
+
+  const generateTimestamps = (duration) => {
+    // Generate timestamps every 30 seconds or at key points
+    const timestamps = []
+    const interval = 30 // seconds
+
+    for (let time = 0; time < duration; time += interval) {
+      timestamps.push({
+        time,
+        title: `Timestamp at ${formatTime(time)}`,
+      })
+    }
+
+    // Update topics with these timestamps
+    setTopics(timestamps)
+
+    // Generate mock explanations for each timestamp
+    const explanations = {}
+    timestamps.forEach((timestamp) => {
+      explanations[timestamp.time] =
+        `At ${formatTime(timestamp.time)}, the video discusses important concepts related to this section. This is a key moment in the presentation that highlights core principles.`
+    })
+
+    setVideoExplanations(explanations)
+  }
 
   const formatTimerTime = (totalSeconds) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  };
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+  }
 
-  const transcript = `
+  const [transcript, setTranscript] = useState(`
 # Introduction to Machine Learning
 
 ## Basic Concepts
@@ -167,147 +261,187 @@ Unlike traditional programming, where explicit instructions are provided, machin
 - **Supervised Learning**: Training with labeled data
 - **Unsupervised Learning**: Finding patterns in unlabeled data
 - **Reinforcement Learning**: Learning through trial and error
-  `;
+  `)
 
-  const topics = [
-    { title: "Introduction to Machine Learning", timestamp: 10 },
-    { title: "Supervised vs Unsupervised Learning", timestamp: 30 },
-    { title: "Feature Extraction Techniques", timestamp: 30 },
-    { title: "Model Training Fundamentals", timestamp: 40 },
-    { title: "Evaluation Metrics", timestamp: 50 },
-    { title: "Real-world Applications", timestamp: 60 },
-    { title: "Future Trends in AI", timestamp: 70 },
-  ];
+  const [topics, setTopics] = useState([
+    { title: "Introduction to Machine Learning", time: 10 },
+    { title: "Supervised vs Unsupervised Learning", time: 30 },
+    { title: "Feature Extraction Techniques", time: 60 },
+    { title: "Model Training Fundamentals", time: 90 },
+    { title: "Evaluation Metrics", time: 120 },
+    { title: "Real-world Applications", time: 150 },
+    { title: "Future Trends in AI", time: 180 },
+  ])
 
   const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      const url = URL.createObjectURL(file);
-      setVideoSrc(url);
+      const url = URL.createObjectURL(file)
+      setVideoSrc(url)
+      setYoutubeVideoId("") // Clear YouTube video if local file is selected
     }
-  };
+  }
 
   const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
+    e.preventDefault()
+    setIsDragging(true)
+  }
 
   const handleDragLeave = () => {
-    setIsDragging(false);
-  };
+    setIsDragging(false)
+  }
 
   const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
+    e.preventDefault()
+    setIsDragging(false)
 
-    const file = e.dataTransfer.files?.[0];
+    const file = e.dataTransfer.files?.[0]
     if (file && file.type.startsWith("video/")) {
-      const url = URL.createObjectURL(file);
-      setVideoSrc(url);
+      const url = URL.createObjectURL(file)
+      setVideoSrc(url)
+      setYoutubeVideoId("") // Clear YouTube video if local file is selected
     }
-  };
+  }
 
   const togglePlay = () => {
-    if (videoRef.current) {
+    if (youtubeVideoId && youtubePlayerRef.current) {
       if (isPlaying) {
-        videoRef.current.pause();
+        youtubePlayerRef.current.pauseVideo()
       } else {
-        videoRef.current.play();
+        youtubePlayerRef.current.playVideo()
       }
-      setIsPlaying(!isPlaying);
+      setIsPlaying(!isPlaying)
+    } else if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
     }
-  };
+  }
 
   const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+    if (youtubeVideoId && youtubePlayerRef.current) {
+      if (isMuted) {
+        youtubePlayerRef.current.unMute()
+      } else {
+        youtubePlayerRef.current.mute()
+      }
+      setIsMuted(!isMuted)
+    } else if (videoRef.current) {
+      videoRef.current.muted = !isMuted
+      setIsMuted(!isMuted)
     }
-  };
+  }
 
   const handleVolumeChange = (value) => {
-    const newVolume = value[0];
-    setVolume(newVolume);
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume;
+    const newVolume = value[0]
+    setVolume(newVolume)
+
+    if (youtubeVideoId && youtubePlayerRef.current) {
+      youtubePlayerRef.current.setVolume(newVolume * 100)
+    } else if (videoRef.current) {
+      videoRef.current.volume = newVolume
     }
-  };
+  }
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
+      setCurrentTime(videoRef.current.currentTime)
     }
-  };
+  }
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration);
+      setDuration(videoRef.current.duration)
     }
-  };
+  }
 
   const handleSeek = (value) => {
-    const seekTime = value[0];
-    if (videoRef.current) {
-      videoRef.current.currentTime = seekTime;
-      setCurrentTime(seekTime);
+    const seekTime = value[0]
+
+    if (youtubeVideoId && youtubePlayerRef.current) {
+      youtubePlayerRef.current.seekTo(seekTime)
+      setCurrentTime(seekTime)
+    } else if (videoRef.current) {
+      videoRef.current.currentTime = seekTime
+      setCurrentTime(seekTime)
     }
-  };
+  }
 
   const handleFullscreen = () => {
-    if (videoRef.current) {
+    if (youtubeVideoId) {
+      // For YouTube videos, use the iframe API
       if (document.fullscreenElement) {
-        document.exitFullscreen();
+        document.exitFullscreen()
       } else {
-        videoRef.current.requestFullscreen();
+        const iframe = document.getElementById("youtube-player")
+        if (iframe) {
+          iframe.requestFullscreen()
+        }
+      }
+    } else if (videoRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen()
+      } else {
+        videoRef.current.requestFullscreen()
       }
     }
-  };
+  }
 
   const setPlaybackSpeed = (speed) => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = speed;
-      setPlaybackRate(speed);
+    if (youtubeVideoId && youtubePlayerRef.current) {
+      youtubePlayerRef.current.setPlaybackRate(speed)
+    } else if (videoRef.current) {
+      videoRef.current.playbackRate = speed
     }
-  };
+    setPlaybackRate(speed)
+  }
 
   const jumpToTimestamp = (seconds) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = seconds;
-      setCurrentTime(seconds);
+    if (youtubeVideoId && youtubePlayerRef.current) {
+      youtubePlayerRef.current.seekTo(seconds)
+      setCurrentTime(seconds)
       if (!isPlaying) {
-        videoRef.current.play();
-        setIsPlaying(true);
+        youtubePlayerRef.current.playVideo()
+        setIsPlaying(true)
+      }
+    } else if (videoRef.current) {
+      videoRef.current.currentTime = seconds
+      setCurrentTime(seconds)
+      if (!isPlaying) {
+        videoRef.current.play()
+        setIsPlaying(true)
       }
     }
-  };
+
+    // Set the selected timestamp for explanation
+    setSelectedTimestamp(seconds)
+  }
 
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  };
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+  }
 
   const downloadTranscript = () => {
-    const element = document.createElement("a");
-    const file = new Blob([transcript], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = "transcript.md";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
+    const element = document.createElement("a")
+    const file = new Blob([transcript], { type: "text/plain" })
+    element.href = URL.createObjectURL(file)
+    element.download = "transcript.md"
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+  }
 
   const sendMessage = () => {
-    if (messageInput.trim() === "") return;
+    if (messageInput.trim() === "") return
 
     // Add user message
-    setChatMessages([
-      ...chatMessages,
-      { sender: "user", message: messageInput },
-    ]);
-    setIsLoading(true);
+    setChatMessages([...chatMessages, { sender: "user", message: messageInput }])
+    setIsLoading(true)
 
     // Simulate AI response after a delay
     setTimeout(() => {
@@ -317,41 +451,40 @@ Unlike traditional programming, where explicit instructions are provided, machin
         "Feature extraction is the process of selecting the most relevant attributes from your dataset.",
         "The evaluation metrics discussed in the video include accuracy, precision, recall, and F1 score.",
         "The video mentions that deep learning is a subset of machine learning that uses neural networks with multiple layers.",
-      ];
+      ]
 
-      const randomResponse =
-        aiResponses[Math.floor(Math.random() * aiResponses.length)];
+      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)]
       setChatMessages([
         ...chatMessages,
         { sender: "user", message: messageInput },
         { sender: "ai", message: randomResponse },
-      ]);
-      setMessageInput("");
-      setIsLoading(false);
-    }, 1500);
-  };
+      ])
+      setMessageInput("")
+      setIsLoading(false)
+    }, 1500)
+  }
 
   const addNote = () => {
     if (newNote.trim() !== "") {
-      setNotes([...notes, newNote]);
-      setNewNote("");
+      setNotes([...notes, newNote])
+      setNewNote("")
     }
-  };
+  }
 
   const deleteNote = (index) => {
-    const updatedNotes = [...notes];
-    updatedNotes.splice(index, 1);
-    setNotes(updatedNotes);
-  };
+    const updatedNotes = [...notes]
+    updatedNotes.splice(index, 1)
+    setNotes(updatedNotes)
+  }
 
   const toggleTimer = () => {
-    setTimerActive(!timerActive);
-  };
+    setTimerActive(!timerActive)
+  }
 
   const resetTimer = () => {
-    setTimerSeconds(0);
-    setTimerActive(false);
-  };
+    setTimerSeconds(0)
+    setTimerActive(false)
+  }
 
   const getLayoutClasses = () => {
     switch (layoutMode) {
@@ -359,75 +492,142 @@ Unlike traditional programming, where explicit instructions are provided, machin
         return {
           videoSection: "lg:w-3/4 w-full",
           contentSection: "lg:w-1/4 w-full",
-        };
+        }
       case "content":
         return {
           videoSection: "lg:w-1/4 w-full",
           contentSection: "lg:w-3/4 w-full",
-        };
+        }
       default:
         return {
           videoSection: "lg:w-2/5 w-full",
           contentSection: "lg:w-3/5 w-full",
-        };
+        }
     }
-  };
+  }
 
-  const layoutClasses = getLayoutClasses();
+  // Extract YouTube video ID from URL
+  const extractYoutubeId = (url) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+    const match = url.match(regExp)
+    return match && match[2].length === 11 ? match[2] : null
+  }
 
-  const testimonials = [
-    {
-      quote:
-        "Playback has completely transformed how I study. The interactive features make learning engaging and effective.",
-      name: "Sarah Johnson",
-      title: "Computer Science Student",
-    },
-    {
-      quote:
-        "The ability to take notes while watching lectures has improved my retention significantly. Highly recommended!",
-      name: "Michael Chen",
-      title: "Engineering Major",
-    },
-    {
-      quote:
-        "As a professor, I appreciate how Playback helps my students engage with course material more deeply.",
-      name: "Dr. Emily Rodriguez",
-      title: "Professor of Biology",
-    },
-    {
-      quote:
-        "The Q&A feature is like having a tutor available 24/7. It's been invaluable for my studies.",
-      name: "James Wilson",
-      title: "Physics Student",
-    },
-  ];
+  // Handle YouTube URL submission
+  const handleYoutubeUrlSubmit = (e) => {
+    e.preventDefault()
+    const videoId = extractYoutubeId(youtubeUrl)
 
-  const features = [
-    {
-      title: "Interactive Video Learning",
-      description:
-        "Engage with educational content through our advanced video player with playback controls and timestamped topics.",
-      icon: <Play className="h-6 w-6 text-purple-500" />,
-    },
-    {
-      title: "AI-Powered Q&A",
-      description:
-        "Get instant answers to your questions about the lecture content with our intelligent assistant.",
-      icon: <MessageSquare className="h-6 w-6 text-blue-500" />,
-    },
-    {
-      title: "Comprehensive Transcripts",
-      description:
-        "Access complete lecture transcripts with downloadable options for offline study and review.",
-      icon: <BookOpen className="h-6 w-6 text-green-500" />,
-    },
-    {
-      title: "Topic Navigation",
-      description:
-        "Jump directly to specific topics within videos using our intelligent content indexing system.",
-      icon: <List className="h-6 w-6 text-amber-500" />,
-    },
-  ];
+    if (videoId) {
+      setYoutubeVideoId(videoId)
+      setVideoSrc("") // Clear local video if YouTube is selected
+      toast.success("YouTube Video Loaded", {
+        description: "The video has been loaded successfully."
+      })
+    } else {
+      toast.error("Invalid YouTube URL", {
+        description: "Please enter a valid YouTube video URL."
+      })
+    }
+  }
+
+  // Take screenshot of the current frame
+  const takeScreenshot = () => {
+    if (youtubeVideoId && youtubePlayerRef.current) {
+      // For YouTube videos, we need to use a different approach
+      // since we can't directly access the video element
+      const iframe = document.getElementById("youtube-player")
+      if (!iframe) return
+
+      // Pause the video to get a clear screenshot
+      youtubePlayerRef.current.pauseVideo()
+
+      // Create a canvas element
+      const canvas = canvasRef.current
+      if (!canvas) return
+
+      // Set canvas dimensions
+      const width = iframe.clientWidth
+      const height = iframe.clientHeight
+      canvas.width = width
+      canvas.height = height
+
+      // Draw the iframe to canvas (this is a simplified approach and may not work in all browsers)
+      // In a production app, you might need to use a server-side solution or YouTube's API
+      const ctx = canvas.getContext("2d")
+
+      // Create an image from the YouTube thumbnail as a fallback
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      img.src = `https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`
+
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, width, height)
+
+        // Get the image data URL
+        const dataUrl = canvas.toDataURL("image/png")
+
+        // Add to screenshots array
+        const newScreenshot = {
+          time: currentTime,
+          dataUrl,
+          explanation:
+            videoExplanations[Math.floor(currentTime)] ||
+            `Screenshot taken at ${formatTime(currentTime)}. This appears to be a key moment in the video.`,
+        }
+
+        setScreenshots([...screenshots, newScreenshot])
+
+        // In the takeScreenshot function
+toast.success("Screenshot Captured", {
+  description: `Screenshot taken at ${formatTime(currentTime)}`
+})
+      }
+    } else if (videoRef.current) {
+      // For local videos, we can directly access the video element
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      if (!video || !canvas) return
+
+      // Pause the video to get a clear screenshot
+      video.pause()
+      setIsPlaying(false)
+
+      // Set canvas dimensions
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+
+      // Draw the video frame to canvas
+      const ctx = canvas.getContext("2d")
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+      // Get the image data URL
+      const dataUrl = canvas.toDataURL("image/png")
+
+      // Add to screenshots array
+      const newScreenshot = {
+        time: currentTime,
+        dataUrl,
+        explanation:
+          videoExplanations[Math.floor(currentTime)] ||
+          `Screenshot taken at ${formatTime(currentTime)}. This appears to be a key moment in the video.`,
+      }
+
+      setScreenshots([...screenshots, newScreenshot])
+
+      toast({
+        title: "Screenshot Captured",
+        description: `Screenshot taken at ${formatTime(currentTime)}`,
+      })
+    }
+  }
+
+  // Toggle miniplayer mode
+  const toggleMiniplayer = () => {
+    setIsMiniplayer(!isMiniplayer)
+  }
+
+  const layoutClasses = getLayoutClasses()
 
   return (
     <div className={`min-h-screen ${darkMode ? "dark" : ""}`}>
@@ -465,11 +665,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
             <div className="flex items-center gap-4">
               <div className="relative hidden md:block">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="w-[200px] pl-8 rounded-full bg-background"
-                />
+                <Input type="search" placeholder="Search..." className="w-[200px] pl-8 rounded-full bg-background" />
               </div>
 
               <Button variant="ghost" size="icon" className="relative">
@@ -492,10 +688,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
 
               <div className="flex items-center gap-2">
                 <Avatar>
-                  <AvatarImage
-                    src="/placeholder.svg?height=32&width=32"
-                    alt="User"
-                  />
+                  <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
                   <AvatarFallback>{user.name.slice(0, 1)}</AvatarFallback>
                 </Avatar>
                 <button className="hidden md:block" onClick={handleLogout}>
@@ -516,8 +709,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                   <TextGenerateEffect words="Introduction to Machine Learning" />
                 </h1>
                 <p className="text-muted-foreground mt-2">
-                  Learn the fundamentals of machine learning algorithms and
-                  applications
+                  Learn the fundamentals of machine learning algorithms and applications
                 </p>
               </div>
 
@@ -538,6 +730,31 @@ Unlike traditional programming, where explicit instructions are provided, machin
             </div>
           </div>
 
+          {/* YouTube URL Input */}
+          {showUrlInput && (
+            <div className="mb-6 bg-white dark:bg-slate-900 rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Link className="h-5 w-5 text-purple-600" />
+                Enter YouTube Video URL
+              </h2>
+              <form onSubmit={handleYoutubeUrlSubmit} className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+                  Load Video
+                </Button>
+              </form>
+              <p className="text-sm text-muted-foreground mt-2">
+                Enter a valid YouTube URL to load the video and access timestamp features
+              </p>
+            </div>
+          )}
+
           {/* Layout Controls */}
           <div className="mb-4 flex items-center justify-end gap-2">
             <span className="text-sm text-muted-foreground">Layout:</span>
@@ -545,11 +762,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
               variant={layoutMode === "balanced" ? "default" : "outline"}
               size="sm"
               onClick={() => setLayoutMode("balanced")}
-              className={
-                layoutMode === "balanced"
-                  ? "bg-purple-600 hover:bg-purple-700"
-                  : ""
-              }
+              className={layoutMode === "balanced" ? "bg-purple-600 hover:bg-purple-700" : ""}
             >
               <Maximize2 className="h-4 w-4" />
             </Button>
@@ -557,11 +770,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
               variant={layoutMode === "video" ? "default" : "outline"}
               size="sm"
               onClick={() => setLayoutMode("video")}
-              className={
-                layoutMode === "video"
-                  ? "bg-purple-600 hover:bg-purple-700"
-                  : ""
-              }
+              className={layoutMode === "video" ? "bg-purple-600 hover:bg-purple-700" : ""}
             >
               <PanelLeftClose className="h-4 w-4" />
             </Button>
@@ -569,11 +778,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
               variant={layoutMode === "content" ? "default" : "outline"}
               size="sm"
               onClick={() => setLayoutMode("content")}
-              className={
-                layoutMode === "content"
-                  ? "bg-purple-600 hover:bg-purple-700"
-                  : ""
-              }
+              className={layoutMode === "content" ? "bg-purple-600 hover:bg-purple-700" : ""}
             >
               <PanelRightClose className="h-4 w-4" />
             </Button>
@@ -581,12 +786,10 @@ Unlike traditional programming, where explicit instructions are provided, machin
 
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Left Section - Video Player */}
-            <div
-              className={`${layoutClasses.videoSection} transition-all duration-300`}
-            >
+            <div className={`${layoutClasses.videoSection} transition-all duration-300`}>
               <BackgroundGradient className="rounded-xl overflow-hidden">
                 <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
-                  {!videoSrc ? (
+                  {!videoSrc && !youtubeVideoId ? (
                     <div
                       className={`h-64 md:h-80 flex flex-col items-center justify-center border-2 border-dashed rounded-lg transition-colors ${
                         isDragging
@@ -612,9 +815,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                           <p className="text-gray-700 dark:text-gray-300 mb-2 font-medium">
                             Drag and drop your video here
                           </p>
-                          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                            or
-                          </p>
+                          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">or</p>
                           <Button
                             onClick={() => fileInputRef.current?.click()}
                             className="bg-purple-600 hover:bg-purple-700"
@@ -632,14 +833,22 @@ Unlike traditional programming, where explicit instructions are provided, machin
                       </div>
                     </div>
                   ) : (
-                    <div className="relative">
-                      <video
-                        ref={videoRef}
-                        src={videoSrc}
-                        className="w-full aspect-video bg-black"
-                        onTimeUpdate={handleTimeUpdate}
-                        onLoadedMetadata={handleLoadedMetadata}
-                      />
+                    <div
+                      className={`relative ${isMiniplayer ? "fixed bottom-4 right-4 z-50 w-80 shadow-lg rounded-lg overflow-hidden" : ""}`}
+                    >
+                      {youtubeVideoId ? (
+                        <div className="aspect-video bg-black">
+                          <div id="youtube-player" className="w-full h-full"></div>
+                        </div>
+                      ) : (
+                        <video
+                          ref={videoRef}
+                          src={videoSrc}
+                          className="w-full aspect-video bg-black"
+                          onTimeUpdate={handleTimeUpdate}
+                          onLoadedMetadata={handleLoadedMetadata}
+                        />
+                      )}
 
                       {/* Video Controls */}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
@@ -662,11 +871,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                 onClick={togglePlay}
                                 className="text-white hover:bg-white/20"
                               >
-                                {isPlaying ? (
-                                  <Pause className="h-5 w-5" />
-                                ) : (
-                                  <Play className="h-5 w-5" />
-                                )}
+                                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
                               </Button>
 
                               <div className="flex items-center gap-2">
@@ -676,11 +881,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                                   onClick={toggleMute}
                                   className="text-white hover:bg-white/20"
                                 >
-                                  {isMuted ? (
-                                    <VolumeX className="h-5 w-5" />
-                                  ) : (
-                                    <Volume2 className="h-5 w-5" />
-                                  )}
+                                  {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                                 </Button>
                                 <Slider
                                   value={[volume]}
@@ -693,29 +894,46 @@ Unlike traditional programming, where explicit instructions are provided, machin
                               </div>
 
                               <span className="text-white text-xs">
-                                {formatTime(currentTime)} /{" "}
-                                {formatTime(duration)}
+                                {formatTime(currentTime)} / {formatTime(duration)}
                               </span>
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <div className="flex bg-black/30 rounded-md">
-                                {[0.5, 1, 1.5, 2].map((speed) => (
-                                  <Button
-                                    key={speed}
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setPlaybackSpeed(speed)}
-                                    className={`text-white text-xs px-2 h-7 hover:bg-white/20 ${
-                                      playbackRate === speed
-                                        ? "bg-white/20"
-                                        : ""
-                                    }`}
-                                  >
-                                    {speed}x
-                                  </Button>
-                                ))}
-                              </div>
+                              {!isMiniplayer && (
+                                <div className="flex bg-black/30 rounded-md">
+                                  {[0.5, 1, 1.5, 2].map((speed) => (
+                                    <Button
+                                      key={speed}
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setPlaybackSpeed(speed)}
+                                      className={`text-white text-xs px-2 h-7 hover:bg-white/20 ${
+                                        playbackRate === speed ? "bg-white/20" : ""
+                                      }`}
+                                    >
+                                      {speed}x
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
+
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={toggleMiniplayer}
+                                className="text-white hover:bg-white/20"
+                              >
+                                {isMiniplayer ? <Maximize2 className="h-5 w-5" /> : <Minimize2 className="h-5 w-5" />}
+                              </Button>
+
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={takeScreenshot}
+                                className="text-white hover:bg-white/20"
+                              >
+                                <Camera className="h-5 w-5" />
+                              </Button>
 
                               <Button
                                 variant="ghost"
@@ -734,25 +952,69 @@ Unlike traditional programming, where explicit instructions are provided, machin
                 </div>
               </BackgroundGradient>
 
-              {/* Course Progress */}
-              {/* <div className="mt-6 bg-white dark:bg-slate-900 rounded-xl shadow-md p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-medium">Course Progress</h3>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">42% Complete</span>
-                </div>
-                <Progress value={42} className="h-2 bg-purple-100 dark:bg-purple-950">
-                  <div className="h-full bg-purple-600" style={{ width: '42%' }} />
-                </Progress>
-                
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium mb-2">Course Details</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-blue-500 hover:bg-blue-600">Machine Learning</Badge>
-                    <Badge className="bg-purple-500 hover:bg-purple-600">AI</Badge>
-                    <Badge className="bg-green-500 hover:bg-green-600">Data Science</Badge>
+              {/* Hidden canvas for screenshots */}
+              <canvas ref={canvasRef} className="hidden"></canvas>
+
+              {/* Screenshots Gallery */}
+              {screenshots.length > 0 && (
+                <div className="mt-6 bg-white dark:bg-slate-900 rounded-xl shadow-md p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Camera className="h-4 w-4 text-purple-500" />
+                      Video Screenshots
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {screenshots.map((screenshot, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={screenshot.dataUrl || "/placeholder.svg"}
+                          alt={`Screenshot at ${formatTime(screenshot.time)}`}
+                          className="w-full h-auto rounded-md object-cover aspect-video"
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-1 text-center">
+                          {formatTime(screenshot.time)}
+                        </div>
+                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white"
+                            onClick={() => {
+                              setSelectedTimestamp(screenshot.time)
+                              jumpToTimestamp(screenshot.time)
+                            }}
+                          >
+                            <Info className="h-4 w-4 mr-1" />
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div> */}
+              )}
+
+              {/* Selected Timestamp Explanation */}
+              {selectedTimestamp !== null && (
+                <div className="mt-6 bg-white dark:bg-slate-900 rounded-xl shadow-md p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Info className="h-4 w-4 text-blue-500" />
+                      Timestamp Analysis: {formatTime(selectedTimestamp)}
+                    </h3>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedTimestamp(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p>
+                      {videoExplanations[Math.floor(selectedTimestamp)] ||
+                        `At ${formatTime(selectedTimestamp)}, the video discusses important concepts related to this section. This is a key moment in the presentation that highlights core principles.`}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Study Timer */}
               <div className="mt-6 bg-white dark:bg-slate-900 rounded-xl shadow-md p-4">
@@ -794,10 +1056,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                 </div>
                 <div className="space-y-2 mb-4">
                   {notes.map((note, index) => (
-                    <div
-                      key={index}
-                      className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md relative group"
-                    >
+                    <div key={index} className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md relative group">
                       <p className="text-sm">{note}</p>
                       <button
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -815,7 +1074,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                     onChange={(e) => setNewNote(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        addNote();
+                        addNote()
                       }
                     }}
                   />
@@ -827,15 +1086,9 @@ Unlike traditional programming, where explicit instructions are provided, machin
             </div>
 
             {/* Right Section - Tabs */}
-            <div
-              className={`${layoutClasses.contentSection} transition-all duration-300`}
-            >
+            <div className={`${layoutClasses.contentSection} transition-all duration-300`}>
               <div className="bg-white  dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
-                <Tabs
-                  defaultValue="transcript"
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                >
+                <Tabs defaultValue="transcript" value={activeTab} onValueChange={setActiveTab}>
                   <div className="border-b m-4 dark:border-gray-700">
                     <TabsList className="w-full  justify-start flex rounded-none bg-transparent border-b dark:border-gray-700">
                       <TabsTrigger
@@ -881,105 +1134,71 @@ Unlike traditional programming, where explicit instructions are provided, machin
                           {transcript.split("\n").map((line, index) => {
                             if (line.startsWith("# ")) {
                               return (
-                                <h1
-                                  key={index}
-                                  className="text-2xl font-bold text-purple-800 dark:text-purple-300"
-                                >
+                                <h1 key={index} className="text-2xl font-bold text-purple-800 dark:text-purple-300">
                                   {line.replace("# ", "")}
                                 </h1>
-                              );
+                              )
                             } else if (line.startsWith("## ")) {
                               return (
-                                <h2
-                                  key={index}
-                                  className="text-xl font-semibold text-purple-700 dark:text-purple-400"
-                                >
+                                <h2 key={index} className="text-xl font-semibold text-purple-700 dark:text-purple-400">
                                   {line.replace("## ", "")}
                                 </h2>
-                              );
+                              )
                             } else if (line.startsWith("### ")) {
                               return (
-                                <h3
-                                  key={index}
-                                  className="text-lg font-medium text-purple-600 dark:text-purple-500"
-                                >
+                                <h3 key={index} className="text-lg font-medium text-purple-600 dark:text-purple-500">
                                   {line.replace("### ", "")}
                                 </h3>
-                              );
+                              )
                             } else if (line.startsWith("- ")) {
                               return (
-                                <ul
-                                  key={index}
-                                  className="list-disc list-inside"
-                                >
+                                <ul key={index} className="list-disc list-inside">
                                   <li
                                     dangerouslySetInnerHTML={{
-                                      __html: line
-                                        .replace("- ", "")
-                                        .replace(
-                                          /\*\*(.*?)\*\*/g,
-                                          "<strong>$1</strong>"
-                                        ),
+                                      __html: line.replace("- ", "").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
                                     }}
                                   />
                                 </ul>
-                              );
+                              )
                             } else if (line.match(/^\d+\. /)) {
                               return (
-                                <ol
-                                  key={index}
-                                  className="list-decimal list-inside"
-                                >
+                                <ol key={index} className="list-decimal list-inside">
                                   <li
                                     dangerouslySetInnerHTML={{
                                       __html: line
                                         .replace(/^\d+\. /, "")
-                                        .replace(
-                                          /\*\*(.*?)\*\*/g,
-                                          "<strong>$1</strong>"
-                                        ),
+                                        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
                                     }}
                                   />
                                 </ol>
-                              );
-                            } else if (
-                              line.startsWith("**") &&
-                              line.endsWith("**")
-                            ) {
+                              )
+                            } else if (line.startsWith("**") && line.endsWith("**")) {
                               return (
                                 <p key={index} className="font-bold">
                                   {line.replace(/\*\*/g, "")}
                                 </p>
-                              );
+                              )
                             } else if (line.trim() === "") {
-                              return <br key={index} />;
+                              return <br key={index} />
                             } else {
                               return (
                                 <p
                                   key={index}
                                   dangerouslySetInnerHTML={{
-                                    __html: line.replace(
-                                      /\*\*(.*?)\*\*/g,
-                                      "<strong>$1</strong>"
-                                    ),
+                                    __html: line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
                                   }}
                                 />
-                              );
+                              )
                             }
                           })}
                         </div>
                       </ScrollArea>
                     </TabsContent>
 
-                    <TabsContent
-                      value="qa"
-                      className="m-0 h-full flex flex-col"
-                    >
+                    <TabsContent value="qa" className="m-0 h-full flex flex-col">
                       {/* Header */}
                       <div className="p-4 border-b dark:border-gray-700">
-                        <h2 className="font-semibold">
-                          Ask Questions About the Lecture
-                        </h2>
+                        <h2 className="font-semibold">Ask Questions About the Lecture</h2>
                       </div>
 
                       {/* Messages Area */}
@@ -988,11 +1207,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                           {chatMessages.map((msg, index) => (
                             <div
                               key={index}
-                              className={`flex ${
-                                msg.sender === "user"
-                                  ? "justify-end"
-                                  : "justify-start"
-                              }`}
+                              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                             >
                               <div
                                 className={`max-w-[80%] p-3 rounded-lg text-sm ${
@@ -1027,8 +1242,8 @@ Unlike traditional programming, where explicit instructions are provided, machin
                             onChange={(e) => setMessageInput(e.target.value)}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                sendMessage();
+                                e.preventDefault()
+                                sendMessage()
                               }
                             }}
                             className="border-purple-200 focus-visible:ring-purple-500 dark:border-purple-800"
@@ -1047,9 +1262,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                     <TabsContent value="topics" className="m-0 h-full">
                       {/* Header */}
                       <div className="p-4 border-b dark:border-gray-700">
-                        <h2 className="font-semibold">
-                          Key Topics & Timestamps
-                        </h2>
+                        <h2 className="font-semibold">Key Topics & Timestamps</h2>
                       </div>
 
                       {/* Topics List */}
@@ -1059,23 +1272,21 @@ Unlike traditional programming, where explicit instructions are provided, machin
                             <HoverBorderGradient
                               key={index}
                               className="p-4 bg-white dark:bg-slate-900 cursor-pointer transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-slate-800"
-                              onClick={() => jumpToTimestamp(topic.timestamp)}
+                              onClick={() => jumpToTimestamp(topic.time)}
                               containerClassName="rounded-none"
                               as="div"
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center w-full gap-3">
                                   <Clock className="h-5 w-5 text-purple-500" />
-                                  <span className="text-black dark:text-gray-100">
-                                    {topic.title}
-                                  </span>
+                                  <span className="text-black dark:text-gray-100">{topic.title}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Badge
                                     variant="outline"
                                     className="border-purple-200 text-black dark:text-gray-100 dark:border-purple-800"
                                   >
-                                    {formatTime(topic.timestamp)}
+                                    {formatTime(topic.time)}
                                   </Badge>
                                   <ChevronRight className="h-4 w-4 text-purple-500" />
                                 </div>
@@ -1099,9 +1310,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                           <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />
                         </div>
                         <div>
-                          <h3 className="font-medium">
-                            Deep Learning Fundamentals
-                          </h3>
+                          <h3 className="font-medium">Deep Learning Fundamentals</h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             Neural networks, backpropagation, and more
                           </p>
@@ -1119,9 +1328,7 @@ Unlike traditional programming, where explicit instructions are provided, machin
                           <BookOpen className="h-6 w-6 text-purple-600 dark:text-purple-300" />
                         </div>
                         <div>
-                          <h3 className="font-medium">
-                            Natural Language Processing
-                          </h3>
+                          <h3 className="font-medium">Natural Language Processing</h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             Text analysis, sentiment, and transformers
                           </p>
@@ -1134,281 +1341,27 @@ Unlike traditional programming, where explicit instructions are provided, machin
             </div>
           </div>
 
-          {/* Additional Widgets Section */}
-          <div className="mt-16 ">
-            {/* <LampContainer>
-              <div className="h-[400px]">
-                <h2 className="text-3xl font-bold text-center mb-8">
-                  Enhance Your Learning Experience
-                </h2>
-              </div>
-            </LampContainer> */}
-
-            {/* <TracingBeam className="px-6">
-              <div className="max-w-2xl mx-auto my-16">
-                <h2 className="text-2xl font-bold mb-8 text-center">Why Choose Playback?</h2>
-                <div className="space-y-8">
-                  <p>
-                    Playback is designed to transform how you learn from video content. Our platform combines cutting-edge 
-                    technology with thoughtful learning design to create an experience that helps you retain information better.
-                  </p>
-                  <p>
-                    With features like interactive transcripts, AI-powered Q&A, and topic navigation, you can engage with 
-                    educational content in ways that traditional video platforms don't allow.
-                  </p>
-                  <p>
-                    Whether you're a student, professional, or lifelong learner, Playback gives you the tools to make the most 
-                    of your educational videos.
-                  </p>
-                </div>
-              </div>
-            </TracingBeam> */}
-
-            {/* Feature Grid */}
-            {/* <div className="my-16">
-              <h2 className="text-2xl font-bold mb-8 text-center">Powerful Learning Features</h2>
-              <BentoGrid className="max-w-6xl mx-auto">
-                {features.map((feature, i) => (
-                  <BentoGridItem
-                    key={i}
-                    title={feature.title}
-                    description={feature.description}
-                    header={
-                      <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 p-8">
-                        {feature.icon}
-                      </div>
-                    }
-                    className="border border-purple-100 dark:border-purple-800"
-                  />
-                ))}
-              </BentoGrid>
-            </div> */}
-
-            {/* Testimonials */}
-            {/* <div className="my-16 relative overflow-hidden py-10">
-              <Spotlight
-                className="-top-40 left-0"
-                fill="purple"
-              />
-              <div className="relative z-10">
-                <h2 className="text-2xl font-bold mb-8 text-center">What Our Users Say</h2>
-                <div className="max-w-5xl mx-auto">
-                  <InfiniteMovingCards
-                    items={testimonials}
-                    direction="right"
-                    speed="slow"
-                    pauseOnHover={true}
-                  />
-                </div>
-              </div>
-            </div> */}
-
-            {/* Stats Widget */}
-            <div className="my-16 ">
-              <div className="max-w-5xl mx-auto   bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
-                <div className="p-6 w-full">
-                  <h2 className="text-xl font-bold mb-6 text-center">
-                    Learning Analytics
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="flex w-fullflex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                        87%
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
-                        Average Completion Rate
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                        12.5
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
-                        Hours Watched This Month
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                        24
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
-                        Courses In Progress
-                      </div>
+          {/* Learning Analytics Section */}
+          <div className="my-16 ">
+            <div className="max-w-5xl mx-auto bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 w-full">
+                <h2 className="text-xl font-bold mb-6 text-center">Learning Analytics</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex w-fullflex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">87%</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
+                      Average Completion Rate
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Calendar Widget */}
-            <div className="my-16">
-              <div className="max-w-5xl mx-auto bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
-                <div className="p-6">
-                  <h2 className="text-xl font-bold mb-6">
-                    Upcoming Learning Schedule
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
-                    {Array.from({ length: 7 }).map((_, i) => {
-                      const isToday = i === 2;
-                      const hasEvent = [1, 3, 5].includes(i);
-                      return (
-                        <div
-                          key={i}
-                          className={`p-4 rounded-lg border ${
-                            isToday
-                              ? "bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800"
-                              : "border-gray-200 dark:border-gray-700"
-                          }`}
-                        >
-                          <div className="text-center">
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {
-                                [
-                                  "Mon",
-                                  "Tue",
-                                  "Wed",
-                                  "Thu",
-                                  "Fri",
-                                  "Sat",
-                                  "Sun",
-                                ][i]
-                              }
-                            </div>
-                            <div
-                              className={`text-lg font-semibold ${
-                                isToday
-                                  ? "text-purple-600 dark:text-purple-400"
-                                  : ""
-                              }`}
-                            >
-                              {i + 10}
-                            </div>
-                          </div>
-                          {hasEvent && (
-                            <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs">
-                              {i === 1 && "Data Science - 2PM"}
-                              {i === 3 && "ML Workshop - 10AM"}
-                              {i === 5 && "AI Ethics - 4PM"}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Study Group Widget */}
-            <div className="my-16">
-              <div className="max-w-5xl mx-auto bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden">
-                <div className="p-6">
-                  <h2 className="text-xl font-bold mb-6">Study Groups</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="flex -space-x-2">
-                          {[1, 2, 3].map((i) => (
-                            <Avatar
-                              key={i}
-                              className="border-2 border-white dark:border-slate-900"
-                            >
-                              <AvatarImage
-                                src={`/placeholder.svg?height=32&width=32&text=${i}`}
-                              />
-                              <AvatarFallback>U{i}</AvatarFallback>
-                            </Avatar>
-                          ))}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">
-                            Machine Learning Basics
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            8 members
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        Weekly discussions on fundamental ML concepts and
-                        algorithms.
-                      </p>
-                      <Button variant="outline" size="sm" className="w-full">
-                        Join Group
-                      </Button>
-                    </div>
-                    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="flex -space-x-2">
-                          {[4, 5, 6].map((i) => (
-                            <Avatar
-                              key={i}
-                              className="border-2 border-white dark:border-slate-900"
-                            >
-                              <AvatarImage
-                                src={`/placeholder.svg?height=32&width=32&text=${i}`}
-                              />
-                              <AvatarFallback>U{i}</AvatarFallback>
-                            </Avatar>
-                          ))}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">Data Science Projects</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            12 members
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        Collaborative work on real-world data science
-                        challenges.
-                      </p>
-                      <Button variant="outline" size="sm" className="w-full">
-                        Join Group
-                      </Button>
+                  <div className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">12.5</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
+                      Hours Watched This Month
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Flashcards Widget */}
-            <div className="my-16 relative">
-              <Meteors number={20} />
-              <div className="max-w-5xl mx-auto bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden relative z-10">
-                <div className="p-6">
-                  <h2 className="text-xl font-bold mb-6">Study Flashcards</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg h-40 flex items-center justify-center text-center">
-                      <div>
-                        <h3 className="font-medium mb-2">
-                          What is supervised learning?
-                        </h3>
-                        <Button variant="outline" size="sm" className="mt-2">
-                          Reveal Answer
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-lg h-40 flex items-center justify-center text-center">
-                      <div>
-                        <h3 className="font-medium mb-2">
-                          Name three types of neural networks
-                        </h3>
-                        <Button variant="outline" size="sm" className="mt-2">
-                          Reveal Answer
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg h-40 flex items-center justify-center text-center">
-                      <div>
-                        <h3 className="font-medium mb-2">
-                          What is the purpose of regularization?
-                        </h3>
-                        <Button variant="outline" size="sm" className="mt-2">
-                          Reveal Answer
-                        </Button>
-                      </div>
-                    </div>
+                  <div className="flex flex-col items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">24</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">Courses In Progress</div>
                   </div>
                 </div>
               </div>
@@ -1423,8 +1376,9 @@ Unlike traditional programming, where explicit instructions are provided, machin
           </Button>
         </div>
       </div>
+      <Toaster />
     </div>
-  );
+  )
 }
 
 function Share(props) {
@@ -1445,7 +1399,7 @@ function Share(props) {
       <polyline points="16 6 12 2 8 6" />
       <line x1="12" x2="12" y1="2" y2="15" />
     </svg>
-  );
+  )
 }
 
 function X(props) {
@@ -1465,5 +1419,6 @@ function X(props) {
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
     </svg>
-  );
+  )
 }
+
